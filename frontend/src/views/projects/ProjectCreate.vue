@@ -40,7 +40,7 @@
 
         <div class="form-grid two-columns">
           <div class="form-control">
-            <label class="field-label">分集名称</label>
+            <label class="field-label">分集名称 <span class="required-mark">*</span></label>
             <input v-model="form.name" type="text" class="field-input" placeholder="例如：第一集">
           </div>
           <div class="form-control">
