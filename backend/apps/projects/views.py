@@ -411,7 +411,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
         stage_name = serializer.validated_data["stage_name"]
         input_data = serializer.validated_data.get("input_data", {})
-
+        if "original_topic" in input_data and "raw_text" not in input_data:
+            input_data["raw_text"] = input_data["original_topic"]
         # 获取阶段
         stage = get_object_or_404(ProjectStage, project=project, stage_type=stage_name)
 

@@ -263,7 +263,7 @@ class LLMStageProcessor(StageProcessor):
 
         elif self.stage_type == 'storyboard':
             # 分镜生成: 单个任务
-            return [{"user_prompt": input_data.get("original_topic", "")}]
+            return [{"user_prompt": input_data.get("raw_text", "")}]
 
         elif self.stage_type == 'camera_movement':
             # 运镜生成: 为每个分镜生成运镜
@@ -328,7 +328,7 @@ class LLMStageProcessor(StageProcessor):
             try:
                 content_rewrite = ContentRewrite.objects.get(project=project)
                 return {
-                    'raw_text': content_rewrite.rewritten_text,
+                    'raw_text': content_rewrite.rewritten_text or content_rewrite.original_text,
                     'human_text': ''
                 }
             except ContentRewrite.DoesNotExist:
@@ -576,8 +576,8 @@ class LLMStageProcessor(StageProcessor):
                 from apps.projects.utils import parse_json
                 camera_data = parse_json(generated_text)
 
-                if not camera_data or not isinstance(camera_data, dict):
-                    raise ValueError("解析结果为空或格式错误")
+                # if not camera_data or not isinstance(camera_data, dict):
+                #     raise ValueError("解析结果为空或格式错误")
 
                 movement_type = camera_data.get('movement_type', '')
                 movement_params = camera_data.get('movement_params', {})

@@ -458,7 +458,29 @@ class Text2ImageStageProcessor(StageProcessor):
         同步获取全局变量（用于非异步上下文）
         """
         return self._get_global_variables(project)
+    def replace_double_quote_in_dict(self, d):
+        """
+        递归替换字典中所有字符串类型value里的双引号为单引号
+        支持嵌套字典、列表等复杂结构
+        """
+        # 如果是字典，遍历所有键值对
+        if isinstance(d, dict):
+            for key, value in d.items():
+                d[key] = self.replace_double_quote_in_dict(value)
 
+        # 如果是列表/元组，遍历每个元素
+        elif isinstance(d, (list, tuple)):
+            # 列表直接生成新列表，元组转列表处理后转回元组
+            if isinstance(d, list):
+                return [self.replace_double_quote_in_dict(item) for item in d]
+            else:
+                return tuple([self.replace_double_quote_in_dict(item) for item in d])
+        # 如果是字符串，替换双引号为单引号
+        elif isinstance(d, str):
+            return d.replace('"', "'")
+        # 非字符串/容器类型（数字、布尔等）直接返回
+        else:
+            return d
     def _build_prompt(self, project: Project, storyboard: dict) -> str:
         """
         构建提示词
@@ -473,7 +495,7 @@ class Text2ImageStageProcessor(StageProcessor):
         try:
             # 获取全局变量（同步方式）
             global_vars = self._get_global_variables_sync(project)
-
+            self.replace_double_quote_in_dict(storyboard)
             # 准备模板变量（优先级：storyboard > project > global_vars）
             template_vars = {
                 **global_vars,  # 全局变量（最低优先级）

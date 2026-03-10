@@ -18,7 +18,7 @@ from apps.content.processors.text2image_stage import Text2ImageStageProcessor
 from apps.content.processors.image2video_stage import Image2VideoStageProcessor
 from apps.projects.models import Project, ProjectStage
 from apps.projects.utils import is_stage_template_enabled
-from backend.config.celery_app import app
+from config.celery_app import app
 
 logger = logging.getLogger(__name__)
 
