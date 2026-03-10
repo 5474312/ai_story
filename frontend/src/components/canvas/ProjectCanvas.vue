@@ -3,14 +3,71 @@
     <!-- 项目信息节点（固定在左上角，不随画布移动） -->
     <div class="project-info-node">
       <div class="project-info-main">
-        <h2 class="text-lg font-bold project-name" :title="project.name">{{ truncatedProjectName }}</h2>
-        <status-badge :status="project.status" type="project" />
-        <div class="meta-item">
+        <div class="project-title-switcher ui-chip-block is-title-chip">
+          <button
+            class="project-title-trigger"
+            type="button"
+            :title="project.name"
+            @click="toggleEpisodeMenu"
+          >
+            <span class="project-name text-lg font-bold">{{ currentEpisodeLabel }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="title-chevron" :class="{ open: showEpisodeMenu }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <transition name="episode-dropdown">
+            <div v-if="showEpisodeMenu" class="episode-dropdown">
+              <div class="episode-dropdown-header">快速切换分集</div>
+              <div class="episode-search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" class="episode-search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  ref="episodeSearchInput"
+                  v-model="episodeSearch"
+                  type="text"
+                  class="episode-search-input"
+                  placeholder="搜索分集标题..."
+                  @keydown.down.prevent="moveEpisodeHighlight(1)"
+                  @keydown.up.prevent="moveEpisodeHighlight(-1)"
+                  @keydown.enter.prevent="selectHighlightedEpisode"
+                  @keydown.esc.prevent="closeEpisodeMenu"
+                >
+              </div>
+              <div v-if="filteredEpisodes.length" class="episode-options">
+                <button
+                  v-for="(episode, index) in filteredEpisodes"
+                  :key="episode.id"
+                  type="button"
+                  class="episode-option"
+                  :class="{
+                    active: episode.id === project.id,
+                    highlighted: highlightedEpisodeIndex === index,
+                  }"
+                  :disabled="episode.id === project.id || switchingEpisodeId === episode.id"
+                  @mouseenter="highlightedEpisodeIndex = index"
+                  @click="handleEpisodeSwitch(episode.id)"
+                >
+                  <div class="episode-option-main">
+                    <span class="episode-option-title">{{ getEpisodeLabel(episode) }}</span>
+                    <span class="episode-option-series">{{ episode.series_name || project.series_name || '当前作品' }}</span>
+                  </div>
+                  <span class="episode-option-status">{{ episode.status_display }}</span>
+                </button>
+              </div>
+              <div v-else class="episode-empty">没有匹配的分集</div>
+            </div>
+          </transition>
+        </div>
+        <div class="ui-chip-block ui-chip-inline">
+          <status-badge :status="project.status" type="project" />
+        </div>
+        <div class="meta-item ui-chip-block">
           <span class="meta-value">{{ formatDate(project.updated_at) }}</span>
         </div>
 
-        <!-- 提示词模板 -->
-        <div v-if="project.prompt_set_name" class="meta-item">
+        <div v-if="project.prompt_set_name" class="meta-item ui-chip-block">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
@@ -18,51 +75,52 @@
           <span class="meta-value">{{ project.prompt_set_name }}</span>
         </div>
 
-        <!-- 剪映草稿信息 -->
-        <div v-if="project.jianying_draft_path" class="draft-info">
+        <div v-if="project.jianying_draft_path" class="draft-info ui-chip-block">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span class="text-xs">剪映草稿已生成</span>
         </div>
 
-        <!-- 运行流程按钮 -->
-        <button
-          class="btn btn-ghost btn-sm gap-2"
-          :class="{ loading: isRunningPipeline }"
-          :disabled="isRunningPipeline"
-          @click="handleRunPipeline"
-        >
-          <svg
-            v-if="!isRunningPipeline"
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div class="ui-chip-block ui-action-chip">
+          <button
+            class="btn btn-ghost btn-sm gap-2"
+            :class="{ loading: isRunningPipeline }"
+            :disabled="isRunningPipeline"
+            @click="handleRunPipeline"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          {{ isRunningPipeline ? '运行中...' : '' }}
-        </button>
+            <svg
+              v-if="!isRunningPipeline"
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {{ isRunningPipeline ? '运行中...' : '运行流程' }}
+          </button>
+        </div>
 
-        <!-- 剪映草稿生成按钮 -->
-        <jianying-draft-button
-          :project-id="project.id"
-          :project="project"
-          @generated="handleDraftGenerated"
-        />
+        <div class="ui-chip-block ui-action-chip">
+          <jianying-draft-button
+            :project-id="project.id"
+            :project="project"
+            @generated="handleDraftGenerated"
+          />
+        </div>
       </div>
     </div>
 
@@ -185,6 +243,10 @@ export default {
     stages: {
       type: Array,
       default: () => []
+    },
+    episodes: {
+      type: Array,
+      default: () => []
     }
   },
   data() {
@@ -206,7 +268,11 @@ export default {
       // 运行流程状态
       isRunningPipeline: false,
       pipelineTaskId: null,
-      pipelineChannel: null
+      pipelineChannel: null,
+      showEpisodeMenu: false,
+      switchingEpisodeId: null,
+      episodeSearch: '',
+      highlightedEpisodeIndex: 0
     };
   },
   computed: {
@@ -217,6 +283,20 @@ export default {
         return this.project.name.slice(0, maxLength) + '...';
       }
       return this.project.name;
+    },
+    currentEpisodeLabel() {
+      return this.project?.display_name || this.project?.episode_title || this.truncatedProjectName;
+    },
+    filteredEpisodes() {
+      const keyword = this.episodeSearch.trim().toLowerCase();
+      if (!keyword) {
+        return this.episodes;
+      }
+      return this.episodes.filter((episode) => {
+        const label = this.getEpisodeLabel(episode) || '';
+        const seriesName = episode.series_name || '';
+        return label.toLowerCase().includes(keyword) || seriesName.toLowerCase().includes(keyword);
+      });
     },
     // 节点位置配置（固定位置，由 FlowCanvas 自动居中）
     nodePositions() {
@@ -355,6 +435,7 @@ export default {
     }
   },
   mounted() {
+    document.addEventListener('click', this.handleDocumentClick);
     // 调试信息
     console.log('[ProjectCanvas] Mounted');
     console.log('[ProjectCanvas] Project:', this.project);
@@ -363,9 +444,30 @@ export default {
     console.log('[ProjectCanvas] AllNodePositions:', this.allNodePositions);
   },
   watch: {
+    '$route.params.id'() {
+      this.showEpisodeMenu = false;
+      this.switchingEpisodeId = null;
+      this.episodeSearch = '';
+      this.highlightedEpisodeIndex = 0;
+    },
+    showEpisodeMenu(isOpen) {
+      if (isOpen) {
+        this.episodeSearch = '';
+        this.highlightedEpisodeIndex = this.filteredEpisodes.findIndex((episode) => episode.id !== this.project.id);
+        if (this.highlightedEpisodeIndex < 0) {
+          this.highlightedEpisodeIndex = 0;
+        }
+        this.$nextTick(() => {
+          this.$refs.episodeSearchInput?.focus();
+        });
+      }
+    },
+    episodeSearch() {
+      this.highlightedEpisodeIndex = 0;
+    },
     storyboards: {
       deep: true,
-      handler(newVal, oldVal) {
+      handler(newVal) {
         console.log('[ProjectCanvas] Storyboards changed:', newVal);
 
         // 检查并清除已完成的执行状态
@@ -401,6 +503,51 @@ export default {
   },
   methods: {
     formatDate,
+    getEpisodeLabel(episode) {
+      return episode.display_name || episode.episode_title || episode.name;
+    },
+    toggleEpisodeMenu() {
+      if (!this.episodes.length) {
+        return;
+      }
+      this.showEpisodeMenu = !this.showEpisodeMenu;
+    },
+    closeEpisodeMenu() {
+      this.showEpisodeMenu = false;
+    },
+    moveEpisodeHighlight(step) {
+      if (!this.filteredEpisodes.length) {
+        return;
+      }
+      const total = this.filteredEpisodes.length;
+      this.highlightedEpisodeIndex = (this.highlightedEpisodeIndex + step + total) % total;
+    },
+    selectHighlightedEpisode() {
+      const target = this.filteredEpisodes[this.highlightedEpisodeIndex];
+      if (!target) {
+        return;
+      }
+      this.handleEpisodeSwitch(target.id);
+    },
+    handleDocumentClick(event) {
+      if (!this.showEpisodeMenu) {
+        return;
+      }
+      if (!this.$el.contains(event.target)) {
+        this.closeEpisodeMenu();
+      }
+    },
+    handleEpisodeSwitch(episodeId) {
+      if (!episodeId || episodeId === this.project.id) {
+        this.closeEpisodeMenu();
+        return;
+      }
+      this.switchingEpisodeId = episodeId;
+      this.closeEpisodeMenu();
+      this.$router.push({ name: 'ProjectDetail', params: { id: episodeId } }).finally(() => {
+        this.switchingEpisodeId = null;
+      });
+    },
 
     showImageNode(storyboard) {
       return storyboard?.image_generation?.template_enabled !== false;
@@ -778,7 +925,7 @@ export default {
      */
     setStageLoading(stageName, isLoading) {
       console.log('[ProjectCanvas] 设置阶段 loading:', stageName, isLoading);
-      if (this.executingStages.hasOwnProperty(stageName)) {
+      if (Object.prototype.hasOwnProperty.call(this.executingStages, stageName)) {
         this.executingStages[stageName] = isLoading;
       }
     },
@@ -829,6 +976,9 @@ export default {
         videos: {}
       };
     }
+  },
+  beforeDestroy() {
+    document.removeEventListener('click', this.handleDocumentClick);
   }
 };
 </script>
@@ -851,33 +1001,254 @@ export default {
   display: flex;
 }
 
-/* 项目信息节点样式 - 固定在顶部 */
 .project-info-node {
   position: absolute;
   top: 1rem;
   left: 1rem;
+  right: 1rem;
   z-index: 200;
-  background: hsl(var(--b1));
-  border: 2px solid hsl(var(--bc) / 0.2);
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  /* box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); */
-  pointer-events: auto;
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  pointer-events: none;
 }
 
 .project-info-main {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.ui-chip-block {
+  position: relative;
+  pointer-events: auto;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.layout-shell.theme-dark .ui-chip-block {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.is-title-chip {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(148, 163, 184, 0.18);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.layout-shell.theme-dark .is-title-chip {
+  background: rgba(15, 23, 42, 0.68);
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45);
+}
+
+.ui-chip-inline {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.25rem;
+}
+
+.ui-action-chip {
+  padding: 0.2rem;
+}
+
+.project-title-switcher {
+  position: relative;
+}
+
+.project-title-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.85rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.project-name {
+  max-width: 260px;
+  cursor: pointer;
+  margin: 0;
+  color: #0f172a;
+}
+
+.layout-shell.theme-dark .project-name {
+  color: #e2e8f0;
+}
+
+.title-chevron {
+  width: 1rem;
+  height: 1rem;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.title-chevron.open {
+  transform: rotate(180deg);
+}
+
+.episode-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: 340px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 0.75rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.layout-shell.theme-dark .episode-dropdown {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 0 18px 36px rgba(2, 6, 23, 0.65);
+}
+
+.episode-dropdown-header {
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.episode-search-box {
+  position: relative;
+  margin-bottom: 0.65rem;
+}
+
+.episode-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  width: 0.95rem;
+  height: 0.95rem;
+  color: #94a3b8;
+  transform: translateY(-50%);
+}
+
+.episode-search-input {
+  width: 100%;
+  padding: 0.75rem 0.85rem 0.75rem 2.45rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #0f172a;
+  outline: none;
+}
+
+.layout-shell.theme-dark .episode-search-input {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #e2e8f0;
+}
+
+.episode-search-input:focus {
+  border-color: rgba(20, 184, 166, 0.5);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.14);
+}
+
+.episode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.episode-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.episode-option:hover:not(:disabled),
+.episode-option.highlighted:not(:disabled) {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(20, 184, 166, 0.28);
+  transform: translateY(-1px);
+}
+
+.layout-shell.theme-dark .episode-option:hover:not(:disabled),
+.layout-shell.theme-dark .episode-option.highlighted:not(:disabled) {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.episode-option.active {
+  background: rgba(20, 184, 166, 0.12);
+  border-color: rgba(20, 184, 166, 0.35);
+}
+
+.layout-shell.theme-dark .episode-option.active {
+  background: rgba(94, 234, 212, 0.15);
+  border-color: rgba(94, 234, 212, 0.35);
+}
+
+.episode-option:disabled {
+  cursor: default;
+}
+
+.episode-option-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.episode-option-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.layout-shell.theme-dark .episode-option-title {
+  color: #e2e8f0;
+}
+
+.episode-option-series,
+.episode-option-status,
+.episode-empty {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.episode-empty {
+  padding: 0.75rem 0.5rem 0.25rem;
+  text-align: center;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
   font-size: 0.75rem;
-  color: hsl(var(--bc) / 0.6);
+  color: #64748b;
+  padding: 0.55rem 0.8rem;
+}
+
+.layout-shell.theme-dark .meta-item {
+  color: #cbd5e1;
 }
 
 .meta-label {
@@ -885,23 +1256,44 @@ export default {
 }
 
 .meta-value {
-  color: hsl(var(--bc) / 0.8);
-}
-
-.project-name {
-  max-width: 200px;
-  cursor: default;
+  color: inherit;
 }
 
 .draft-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
-  background: hsl(var(--su) / 0.1);
-  border-radius: 0.5rem;
-  color: hsl(var(--su));
+  padding: 0.55rem 0.85rem;
+  color: #0f766e;
   font-size: 0.75rem;
+}
+
+.layout-shell.theme-dark .draft-info {
+  color: #99f6e4;
+}
+
+.project-info-node :deep(.btn.btn-ghost),
+.project-info-node :deep(.btn.btn-primary),
+.project-info-node :deep(.btn.btn-outline) {
+  border-radius: 999px;
+}
+
+.project-info-node :deep(.btn.btn-ghost) {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.project-info-node :deep(.btn.btn-ghost:hover) {
+  border-color: rgba(20, 184, 166, 0.6);
+  box-shadow: 0 12px 24px rgba(20, 184, 166, 0.18);
+  transform: translateY(-1px);
+}
+
+.layout-shell.theme-dark .project-info-node :deep(.btn.btn-ghost) {
+  background: rgba(15, 23, 42, 0.9);
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.25);
 }
 
 .empty-canvas {
@@ -928,5 +1320,33 @@ export default {
 
 .empty-hint {
   font-size: 0.875rem;
+}
+
+.episode-dropdown-enter-active,
+.episode-dropdown-leave-active {
+  transition: all 0.18s ease;
+}
+
+.episode-dropdown-enter,
+.episode-dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+@media (max-width: 768px) {
+  .project-info-node {
+    left: 0.75rem;
+    right: 0.75rem;
+    top: 0.75rem;
+  }
+
+  .project-name {
+    max-width: none;
+    width: 100%;
+  }
+
+  .episode-dropdown {
+    width: min(340px, calc(100vw - 2.5rem));
+  }
 }
 </style>

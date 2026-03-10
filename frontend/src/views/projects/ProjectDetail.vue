@@ -8,6 +8,7 @@
           ref="projectCanvas"
           :project="project"
           :stages="stages"
+          :episodes="seriesEpisodes"
           @execute-stage="handleExecuteStage"
           @save-stage="handleSaveStage"
           @generate-image="handleGenerateImage"
@@ -47,6 +48,7 @@ export default {
       loading: false,
       project: null,
       stages: [],
+      seriesEpisodes: [],
       storyboards: [],
       savedScrollPosition: 0, // 保存滚动位置
       // SSE 客户端
@@ -58,6 +60,12 @@ export default {
   created() {
     this.fetchData();
   },
+  watch: {
+    '$route.params.id'() {
+      this.disconnectAllSSE();
+      this.fetchData();
+    },
+  },
   beforeDestroy() {
     this.disconnectAllSSE();
   },
@@ -65,6 +73,7 @@ export default {
     ...mapActions('projects', [
       'fetchProject',
       'fetchProjectStages',
+      'fetchSeriesDetail',
       'executeStage',
       'updateProject',
       'updateStageData',
@@ -119,6 +128,16 @@ export default {
         const projectId = this.$route.params.id;
         this.project = await this.fetchProject(projectId);
         this.stages = await this.fetchProjectStages(projectId);
+        this.seriesEpisodes = [];
+
+        if (this.project?.series) {
+          try {
+            const series = await this.fetchSeriesDetail(this.project.series);
+            this.seriesEpisodes = series?.episodes || [];
+          } catch (seriesError) {
+            console.error('Failed to fetch series episodes:', seriesError);
+          }
+        }
 
         // 获取分镜数据（必须在stages加载后）
         this.fetchStoryboardsFromStages();
