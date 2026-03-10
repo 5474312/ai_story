@@ -6,6 +6,7 @@
 
 
 from celery.result import AsyncResult
+from django.core.cache import cache
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -28,6 +29,7 @@ from .serializers import (
     StageExecuteSerializer,
     StageRetrySerializer,
 )
+from .utils import get_stage_template_states, is_stage_template_enabled
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -72,6 +74,35 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """删除项目前检查状态"""
         instance.delete()
 
+    def _project_task_cache_key(self, project_id):
+        return f"project_active_tasks:{project_id}"
+
+    def _get_project_task_ids(self, project_id):
+        return cache.get(self._project_task_cache_key(project_id), [])
+
+    def _register_project_task(self, project_id, task_id):
+        task_ids = self._get_project_task_ids(project_id)
+        if task_id not in task_ids:
+            task_ids.append(task_id)
+        cache.set(self._project_task_cache_key(project_id), task_ids, timeout=24 * 60 * 60)
+
+    def _clear_project_tasks(self, project_id):
+        cache.delete(self._project_task_cache_key(project_id))
+
+    def _revoke_project_tasks(self, project_id):
+        task_ids = self._get_project_task_ids(project_id)
+        revoked_task_ids = []
+
+        for task_id in task_ids:
+            try:
+                AsyncResult(task_id).revoke(terminate=True)
+                revoked_task_ids.append(task_id)
+            except Exception:
+                continue
+
+        self._clear_project_tasks(project_id)
+        return revoked_task_ids
+
     @action(detail=True, methods=["get"])
     def stages(self, request, pk=None):
         """
@@ -84,6 +115,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         - 数据按分镜场景分组，每个场景包含对应的图片、运镜、视频数据
         """
         project = self.get_object()
+        stage_template_states = get_stage_template_states(project)
 
         # 获取 rewrite 和 storyboard 阶段
         rewrite_stage = project.stages.filter(stage_type='rewrite').first()
@@ -99,7 +131,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         # 1. 添加 rewrite 阶段（即使不存在也返回空结构）
         if rewrite_stage:
             rewrite_serializer = ProjectStageSerializer(rewrite_stage)
-            result.append(rewrite_serializer.data)
+            rewrite_data = rewrite_serializer.data
+            rewrite_data['template_enabled'] = stage_template_states.get('rewrite', True)
+            result.append(rewrite_data)
         else:
             # 返回空的结构化数据
             result.append({
@@ -117,6 +151,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 'started_at': None,
                 'completed_at': None,
                 'created_at': None,
+                'template_enabled': stage_template_states.get('rewrite', True),
                 'domain_data': {
                     'content_rewrite': None
                 }
@@ -126,6 +161,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if storyboard_stage:
             storyboard_serializer = ProjectStageSerializer(storyboard_stage)
             storyboard_data = storyboard_serializer.data
+            storyboard_data['template_enabled'] = stage_template_states.get('storyboard', True)
 
             # 整合其他阶段的数据到 domain_data 中
             if storyboard_data.get('domain_data'):
@@ -134,14 +170,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
                     storyboard_data['domain_data'],
                     image_stage,
                     camera_stage,
-                    video_stage
+                    video_stage,
+                    stage_template_states
                 )
 
             result.append(storyboard_data)
 
         return Response(result)
 
-    def _integrate_stage_data(self, project, storyboard_domain_data, image_stage, camera_stage, video_stage):
+    def _integrate_stage_data(self, project, storyboard_domain_data, image_stage, camera_stage, video_stage, stage_template_states=None):
         """
         将 image_generation、camera_movement、video_generation 数据整合到 storyboard 的 domain_data 中
 
@@ -151,11 +188,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
             image_stage: image_generation 阶段对象
             camera_stage: camera_movement 阶段对象
             video_stage: video_generation 阶段对象
+            stage_template_states: 各阶段模板启用状态
 
         Returns:
             dict: 整合后的 domain_data
         """
         from apps.content.models import GeneratedImage, CameraMovement, GeneratedVideo
+
+        stage_template_states = stage_template_states or {}
 
         # 获取所有分镜场景
         storyboards = storyboard_domain_data.get('storyboards', [])
@@ -166,14 +206,17 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
             # 初始化默认数据结构
             sb_data['image_generation'] = {
+                'template_enabled': stage_template_states.get('image_generation', True),
                 'status': image_stage.status if image_stage else 'pending',
                 'images': []
             }
             sb_data['camera_movement'] = {
+                'template_enabled': stage_template_states.get('camera_movement', True),
                 'status': camera_stage.status if camera_stage else 'pending',
                 'data': None
             }
             sb_data['video_generation'] = {
+                'template_enabled': stage_template_states.get('video_generation', True),
                 'status': video_stage.status if video_stage else 'pending',
                 'videos': []
             }
@@ -305,6 +348,24 @@ class ProjectViewSet(viewsets.ModelViewSet):
         # 获取阶段
         stage = get_object_or_404(ProjectStage, project=project, stage_type=stage_name)
 
+        if not is_stage_template_enabled(project, stage_name):
+            now = timezone.now()
+            stage.status = 'skipped'
+            stage.started_at = now
+            stage.completed_at = now
+            stage.error_message = f'{stage.get_stage_type_display()} 对应提示词模板未开启，已跳过该阶段'
+            stage.save(update_fields=['status', 'started_at', 'completed_at', 'error_message'])
+
+            return Response(
+                {
+                    'message': stage.error_message,
+                    'skipped': True,
+                    'stage': ProjectStageSerializer(stage).data,
+                    'project_id': str(project.id),
+                },
+                status=status.HTTP_200_OK,
+            )
+
         # 更新项目状态为处理中
         if project.status != "processing":
             project.status = "processing"
@@ -356,6 +417,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
         # 构建Redis频道名称
         channel = f"ai_story:project:{project.id}:stage:{stage_name}"
+        self._register_project_task(project.id, task.id)
 
         return Response(
             {
@@ -464,15 +526,16 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        revoked_task_ids = self._revoke_project_tasks(project.id)
+
         project.status = "paused"
         project.save()
-
-        # TODO: 取消Celery任务
 
         return Response(
             {
                 "message": "项目已暂停",
                 "project": ProjectDetailSerializer(project).data,
+                "revoked_task_ids": revoked_task_ids,
             }
         )
 
@@ -482,6 +545,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         恢复暂停的项目
         POST /api/v1/projects/{id}/resume/
         """
+        from apps.projects.tasks import run_full_pipeline_task
+
         project = self.get_object()
 
         if project.status != "paused":
@@ -492,13 +557,24 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project.status = "processing"
         project.save()
 
-        # TODO: 重新启动Pipeline (从当前阶段继续)
+        task = run_full_pipeline_task.delay(
+            project_id=str(project.id),
+            user_id=self.request.user.id,
+        )
+        self._register_project_task(project.id, task.id)
+
+        channel = f"ai_story:project:{project.id}:pipeline"
 
         return Response(
             {
                 "message": "项目已恢复",
                 "project": ProjectDetailSerializer(project).data,
+                "task_id": task.id,
+                "channel": channel,
+                "project_id": str(project.id),
             }
+            ,
+            status=status.HTTP_202_ACCEPTED,
         )
 
     @action(detail=True, methods=["post"])
@@ -904,6 +980,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             project_id=str(project.id),
             user_id=self.request.user.id
         )
+        self._register_project_task(project.id, task.id)
 
         # 构建Redis频道名称
         channel = f"ai_story:project:{project.id}:pipeline"
@@ -976,6 +1053,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             background_music=background_music,
             **options
         )
+        self._register_project_task(project.id, task.id)
 
         # 构建Redis频道名称
         channel = f"ai_story:project:{project.id}:jianying_draft"

@@ -1,6 +1,52 @@
 import json
 import re
 
+from apps.prompts.models import PromptTemplate, PromptTemplateSet
+
+
+PROJECT_STAGE_TYPES = [
+    'rewrite',
+    'storyboard',
+    'image_generation',
+    'camera_movement',
+    'video_generation',
+]
+
+
+def get_effective_prompt_template_set(project):
+    """获取项目实际生效的提示词集。"""
+    template_set = getattr(project, 'prompt_template_set', None)
+    if template_set:
+        return template_set
+
+    return PromptTemplateSet.objects.filter(is_default=True).first()
+
+
+def get_stage_template_states(project):
+    """返回项目各阶段对应提示词模板是否启用。"""
+    template_set = get_effective_prompt_template_set(project)
+
+    if not template_set:
+        return {stage_type: False for stage_type in PROJECT_STAGE_TYPES}
+
+    enabled_stage_types = set(
+        PromptTemplate.objects.filter(
+            template_set=template_set,
+            is_active=True,
+            stage_type__in=PROJECT_STAGE_TYPES,
+        ).values_list('stage_type', flat=True)
+    )
+
+    return {
+        stage_type: stage_type in enabled_stage_types
+        for stage_type in PROJECT_STAGE_TYPES
+    }
+
+
+def is_stage_template_enabled(project, stage_type: str) -> bool:
+    """判断指定阶段的提示词模板是否启用。"""
+    return get_stage_template_states(project).get(stage_type, False)
+
 
 def _extract_json_from_text(text: str) -> str:
         """从文本中提取JSON内容,处理可能包含markdown代码块的情况"""

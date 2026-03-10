@@ -30,13 +30,17 @@ import { mapActions } from 'vuex';
 import LoadingContainer from '@/components/common/LoadingContainer.vue';
 import ProjectCanvas from '@/components/canvas/ProjectCanvas.vue';
 import { formatDate } from '@/utils/helpers';
-import { SSEClient, createProjectStageSSE } from '@/services/sseService';
+import { createProjectAllStagesSSE, createProjectStageSSE } from '@/services/sseService';
 
 export default {
   name: 'ProjectDetail',
   components: {
     LoadingContainer,
     ProjectCanvas,
+  },
+  beforeRouteLeave(to, from, next) {
+    this.disconnectAllSSE();
+    next();
   },
   data() {
     return {
@@ -55,13 +59,7 @@ export default {
     this.fetchData();
   },
   beforeDestroy() {
-    // 组件销毁时断开 SSE 连接
-    if (this.pipelineSSEClient) {
-      this.pipelineSSEClient.disconnect();
-    }
-    if (this.stageSSEClient) {
-      this.stageSSEClient.disconnect();
-    }
+    this.disconnectAllSSE();
   },
   methods: {
     ...mapActions('projects', [
@@ -75,6 +73,40 @@ export default {
       'updateCameraMovement'
     ]),
     formatDate,
+
+    getPipelineSSEStorageKey() {
+      return `project_active_pipeline_sse:${this.$route.params.id}`;
+    },
+
+    getStageSSEStorageKey() {
+      return `project_active_stage_sse:${this.$route.params.id}`;
+    },
+
+    markPipelineSSEActive() {
+      sessionStorage.setItem(this.getPipelineSSEStorageKey(), '1');
+      sessionStorage.removeItem(this.getStageSSEStorageKey());
+    },
+
+    clearPipelineSSEMarker() {
+      sessionStorage.removeItem(this.getPipelineSSEStorageKey());
+    },
+
+    markStageSSEActive(stageName) {
+      sessionStorage.setItem(this.getStageSSEStorageKey(), stageName);
+      sessionStorage.removeItem(this.getPipelineSSEStorageKey());
+    },
+
+    clearStageSSEMarker() {
+      sessionStorage.removeItem(this.getStageSSEStorageKey());
+    },
+
+    getMarkedStageSSE() {
+      return sessionStorage.getItem(this.getStageSSEStorageKey());
+    },
+
+    hasMarkedPipelineSSE() {
+      return sessionStorage.getItem(this.getPipelineSSEStorageKey()) === '1';
+    },
 
     async fetchData(preserveScroll = false) {
       // 保存当前滚动位置
@@ -90,6 +122,7 @@ export default {
 
         // 获取分镜数据（必须在stages加载后）
         this.fetchStoryboardsFromStages();
+        this.restoreSSEIfNeeded();
 
         // 恢复滚动位置
         if (preserveScroll) {
@@ -102,6 +135,57 @@ export default {
         this.$message.error('加载项目失败');
       } finally {
         this.loading = false;
+      }
+    },
+
+    disconnectAllSSE() {
+      if (this.pipelineSSEClient) {
+        this.pipelineSSEClient.disconnect();
+        this.pipelineSSEClient = null;
+      }
+      if (this.stageSSEClient) {
+        this.stageSSEClient.disconnect();
+        this.stageSSEClient = null;
+      }
+    },
+
+    hasRunningStage() {
+      return this.stages.some(stage => stage.status === 'processing');
+    },
+
+    restoreSSEIfNeeded() {
+      if (!this.project?.id) {
+        return;
+      }
+
+      if (this.pipelineSSEClient || this.stageSSEClient) {
+        return;
+      }
+
+      const processingStages = this.stages.filter(stage => stage.status === 'processing');
+      const markedStageName = this.getMarkedStageSSE();
+
+      if (this.hasMarkedPipelineSSE()) {
+        console.log('[ProjectDetail] 恢复项目级 SSE 连接');
+        this.connectProjectSSE();
+        return;
+      }
+
+      if (markedStageName && processingStages.some(stage => stage.stage_type === markedStageName)) {
+        console.log('[ProjectDetail] 恢复阶段 SSE 连接:', markedStageName);
+        this.connectStageSSE(markedStageName);
+        return;
+      }
+
+      if (processingStages.length === 1) {
+        console.log('[ProjectDetail] 自动恢复单阶段 SSE 连接:', processingStages[0].stage_type);
+        this.connectStageSSE(processingStages[0].stage_type);
+        return;
+      }
+
+      if (this.project.status === 'processing' || processingStages.length > 1) {
+        console.log('[ProjectDetail] 检测到项目仍在处理中，自动重连 SSE');
+        this.connectProjectSSE();
       }
     },
 
@@ -193,6 +277,13 @@ export default {
           stageName: stageType,
           inputData: inputData
         });
+
+        if (result?.skipped) {
+          this.$message.info(result.message || '该阶段已跳过');
+          await this.refreshCanvasData();
+          return;
+        }
+
         this.$message.success('阶段执行已开始');
 
         // 如果返回了 task_id，建立 SSE 连接监听任务完成
@@ -214,6 +305,8 @@ export default {
         this.stageSSEClient.disconnect();
       }
 
+      this.markStageSSEActive(stageName);
+
       console.log('[ProjectDetail] 连接阶段 SSE:', stageName);
 
       this.stageSSEClient = createProjectStageSSE(this.project.id, stageName);
@@ -230,6 +323,7 @@ export default {
         })
         .on('done', (data) => {
           console.log('[Stage SSE] 完成:', data);
+          this.clearStageSSEMarker();
           this.$message.success(`${stageName} 执行完成`);
 
           // 刷新画布数据
@@ -243,6 +337,7 @@ export default {
         })
         .on('error', (data) => {
           console.error('[Stage SSE] 错误:', data);
+          this.clearStageSSEMarker();
           this.$message.error(data.error || `${stageName} 执行失败`);
 
           // 刷新画布数据
@@ -265,8 +360,21 @@ export default {
     async refreshCanvasData() {
       try {
         const projectId = this.$route.params.id;
+        this.project = await this.fetchProject(projectId);
         this.stages = await this.fetchProjectStages(projectId);
         this.fetchStoryboardsFromStages();
+
+        if (!this.hasRunningStage()) {
+          this.clearStageSSEMarker();
+        }
+
+        if (!this.hasRunningStage() && this.project?.status !== 'processing' && this.pipelineSSEClient) {
+          console.log('[ProjectDetail] 项目已无进行中任务，关闭项目级 SSE');
+          this.clearPipelineSSEMarker();
+          this.pipelineSSEClient.disconnect();
+          this.pipelineSSEClient = null;
+        }
+
         console.log('[ProjectDetail] 画布数据已刷新');
       } catch (error) {
         console.error('[ProjectDetail] 刷新画布数据失败:', error);
@@ -423,21 +531,32 @@ export default {
     handlePipelineStarted({ taskId, channel }) {
       console.log('[ProjectDetail] Pipeline started:', { taskId, channel });
 
+      this.connectProjectSSE();
+    },
+
+    connectProjectSSE() {
+      if (!this.project?.id) {
+        return;
+      }
+
       // 断开之前的连接
       if (this.pipelineSSEClient) {
         this.pipelineSSEClient.disconnect();
+        this.pipelineSSEClient = null;
       }
 
-      // 创建 SSE 客户端监听所有阶段
-      // 注意：URL 路径是 /api/v1/projects/sse/projects/{id}/
-      const API_BASE_URL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8010';
-      const sseUrl = `${API_BASE_URL}/api/v1/projects/sse/projects/${this.project.id}/`;
+      if (this.stageSSEClient) {
+        this.stageSSEClient.disconnect();
+        this.stageSSEClient = null;
+      }
 
-      console.log('[ProjectDetail] 连接 SSE:', sseUrl);
+      this.markPipelineSSEActive();
 
-      this.pipelineSSEClient = new SSEClient();
-      // 全阶段订阅模式：只有 pipeline_done/pipeline_error 才关闭连接
-      this.pipelineSSEClient.connect(sseUrl, { allStagesMode: true });
+      console.log('[ProjectDetail] 连接项目级 SSE:', this.project.id);
+
+      this.pipelineSSEClient = createProjectAllStagesSSE(this.project.id, {
+        autoReconnect: false,
+      });
 
       // 监听各种事件
       this.pipelineSSEClient
@@ -533,12 +652,12 @@ export default {
         .on('done', (data) => {
           console.log('[Pipeline SSE] done 消息:', data);
 
-          // done 消息现在只用于单阶段订阅的结束信号
-          // 全阶段订阅使用 stage_completed 来刷新画布
-          // pipeline 整体完成使用 pipeline_done
+          // 全阶段订阅里偶尔也会收到 done，这里统一做一次轻量刷新
+          this.refreshCanvasData();
         })
         .on('pipeline_done', (data) => {
           console.log('[Pipeline SSE] 流程完成:', data);
+          this.clearPipelineSSEMarker();
           this.$message.success('工作流执行完成！');
 
           // 重置所有 loading 状态
@@ -555,6 +674,7 @@ export default {
         })
         .on('pipeline_error', (data) => {
           console.error('[Pipeline SSE] 流程错误:', data);
+          this.clearPipelineSSEMarker();
           this.$message.error(data.error || '工作流执行失败');
 
           // 重置所有 loading 状态
@@ -587,9 +707,17 @@ export default {
             // 刷新画布数据
             this.refreshCanvasData();
           }
+
+          if (!data.stage || data.stage === 'pipeline') {
+            this.refreshCanvasData();
+          }
+        })
+        .on('stream_end', () => {
+          this.pipelineSSEClient = null;
         })
         .on('close', () => {
           console.log('[Pipeline SSE] 连接已关闭');
+          this.pipelineSSEClient = null;
         });
     },
   },

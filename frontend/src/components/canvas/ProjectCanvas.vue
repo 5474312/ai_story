@@ -89,6 +89,7 @@
       <template v-for="(storyboard, index) in storyboards">
         <!-- 分镜节点 -->
         <storyboard-node
+          v-if="showStoryboardNode"
           :key="`storyboard-${index}`"
           :storyboard="storyboard"
           :index="index"
@@ -98,6 +99,7 @@
 
         <!-- 文生图节点 -->
         <image-gen-node
+          v-if="showImageNode(storyboard)"
           :key="`image-${index}`"
           :status="getImageStatus(storyboard)"
           :position="calculateImagePosition(index)"
@@ -110,6 +112,7 @@
 
         <!-- 运镜节点 -->
         <camera-node
+          v-if="showCameraNode(storyboard)"
           :key="`camera-${index}`"
           :status="getCameraStatus(storyboard)"
           :position="calculateCameraPosition(index)"
@@ -124,6 +127,7 @@
 
         <!-- 视频生成节点 -->
         <video-gen-node
+          v-if="showVideoNode(storyboard)"
           :key="`video-${index}`"
           :status="getVideoStatus(storyboard)"
           :position="calculateVideoPosition(index)"
@@ -136,7 +140,7 @@
       </template>
 
       <!-- 空状态提示 -->
-      <div v-if="!rewriteStage && storyboards.length === 0" class="empty-canvas">
+      <div v-if="!showRewriteNode && !showStoryboardNode" class="empty-canvas">
         <div class="empty-icon">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -223,15 +227,23 @@ export default {
     rewriteStage() {
       return this.stages.find(s => s.stage_type === 'rewrite') || null;
     },
+    storyboardStage() {
+      return this.stages.find(s => s.stage_type === 'storyboard') || null;
+    },
+    showRewriteNode() {
+      return this.rewriteStage?.template_enabled !== false;
+    },
+    showStoryboardNode() {
+      return this.storyboardStage?.template_enabled !== false;
+    },
     storyboards() {
-      const storyboardStage = this.stages.find(s => s.stage_type === 'storyboard') || null;
-      return storyboardStage?.domain_data?.storyboards || [];
+      return this.storyboardStage?.domain_data?.storyboards || [];
     },
     connections() {
       const conns = [];
 
       // 文案改写 → 第一个分镜
-      if (this.rewriteStage && this.storyboards.length > 0) {
+      if (this.showRewriteNode && this.showStoryboardNode && this.storyboards.length > 0) {
         conns.push({
           id: 'rewrite-to-storyboard-0',
           from: 'rewrite',
@@ -242,28 +254,34 @@ export default {
       // 每个分镜的连接线
       this.storyboards.forEach((storyboard, index) => {
         // 分镜 → 文生图
-        conns.push({
-          id: `storyboard-${index}-to-image-${index}`,
-          from: `storyboard-${index}`,
-          to: `image-${index}`
-        });
+        if (this.showStoryboardNode && this.showImageNode(storyboard)) {
+          conns.push({
+            id: `storyboard-${index}-to-image-${index}`,
+            from: `storyboard-${index}`,
+            to: `image-${index}`
+          });
+        }
 
         // 文生图 → 运镜
-        conns.push({
-          id: `image-${index}-to-camera-${index}`,
-          from: `image-${index}`,
-          to: `camera-${index}`
-        });
+        if (this.showImageNode(storyboard) && this.showCameraNode(storyboard)) {
+          conns.push({
+            id: `image-${index}-to-camera-${index}`,
+            from: `image-${index}`,
+            to: `camera-${index}`
+          });
+        }
 
         // 运镜 → 视频生成
-        conns.push({
-          id: `camera-${index}-to-video-${index}`,
-          from: `camera-${index}`,
-          to: `video-${index}`
-        });
+        if (this.showCameraNode(storyboard) && this.showVideoNode(storyboard)) {
+          conns.push({
+            id: `camera-${index}-to-video-${index}`,
+            from: `camera-${index}`,
+            to: `video-${index}`
+          });
+        }
 
         // 分镜之间的连接（垂直）
-        if (index < this.storyboards.length - 1) {
+        if (this.showStoryboardNode && index < this.storyboards.length - 1) {
           conns.push({
             id: `storyboard-${index}-to-storyboard-${index + 1}`,
             from: `storyboard-${index}`,
@@ -276,51 +294,61 @@ export default {
     },
     // 计算所有节点的位置信息（用于画布自动适配和连接线计算）
     allNodePositions() {
-      const positions = {
-        rewrite: {
+      const positions = {};
+
+      if (this.showRewriteNode) {
+        positions.rewrite = {
           ...this.nodePositions.rewrite,
           width: 580,
           height: 400
-        }
-      };
+        };
+      }
 
       // 添加所有分镜及其子节点的位置
       this.storyboards.forEach((storyboard, index) => {
         // 分镜节点
-        const storyboardPos = this.calculateStoryboardPosition(index);
-        positions[`storyboard-${index}`] = {
-          x: storyboardPos.x,
-          y: storyboardPos.y,
-          width: 280,
-          height: 250
-        };
+        if (this.showStoryboardNode) {
+          const storyboardPos = this.calculateStoryboardPosition(index);
+          positions[`storyboard-${index}`] = {
+            x: storyboardPos.x,
+            y: storyboardPos.y,
+            width: 280,
+            height: 250
+          };
+        }
 
         // 文生图节点
-        const imagePos = this.calculateImagePosition(index);
-        positions[`image-${index}`] = {
-          x: imagePos.x,
-          y: imagePos.y,
-          width: 250,
-          height: 250
-        };
+        if (this.showImageNode(storyboard)) {
+          const imagePos = this.calculateImagePosition(index);
+          positions[`image-${index}`] = {
+            x: imagePos.x,
+            y: imagePos.y,
+            width: 250,
+            height: 250
+          };
+        }
 
         // 运镜节点
-        const cameraPos = this.calculateCameraPosition(index);
-        positions[`camera-${index}`] = {
-          x: cameraPos.x,
-          y: cameraPos.y,
-          width: 250,
-          height: 250
-        };
+        if (this.showCameraNode(storyboard)) {
+          const cameraPos = this.calculateCameraPosition(index);
+          positions[`camera-${index}`] = {
+            x: cameraPos.x,
+            y: cameraPos.y,
+            width: 250,
+            height: 250
+          };
+        }
 
         // 视频生成节点
-        const videoPos = this.calculateVideoPosition(index);
-        positions[`video-${index}`] = {
-          x: videoPos.x,
-          y: videoPos.y,
-          width: 250,
-          height: 250
-        };
+        if (this.showVideoNode(storyboard)) {
+          const videoPos = this.calculateVideoPosition(index);
+          positions[`video-${index}`] = {
+            x: videoPos.x,
+            y: videoPos.y,
+            width: 250,
+            height: 250
+          };
+        }
       });
 
       return positions;
@@ -373,6 +401,18 @@ export default {
   },
   methods: {
     formatDate,
+
+    showImageNode(storyboard) {
+      return storyboard?.image_generation?.template_enabled !== false;
+    },
+
+    showCameraNode(storyboard) {
+      return storyboard?.camera_movement?.template_enabled !== false;
+    },
+
+    showVideoNode(storyboard) {
+      return storyboard?.video_generation?.template_enabled !== false;
+    },
 
     // 计算分镜节点位置（垂直排列）
     calculateStoryboardPosition(index) {

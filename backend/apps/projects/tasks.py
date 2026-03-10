@@ -7,17 +7,77 @@
 from email import message
 import logging
 from typing import Dict, Any
+from django.core.cache import cache
 from django.utils import timezone
 
 from core.redis import RedisStreamPublisher
 from core.services.jianying_draft_service import JianyingDraftGenerator
+from apps.content.models import GeneratedImage, Storyboard
 from apps.content.processors.llm_stage import LLMStageProcessor
 from apps.content.processors.text2image_stage import Text2ImageStageProcessor
 from apps.content.processors.image2video_stage import Image2VideoStageProcessor
 from apps.projects.models import Project, ProjectStage
+from apps.projects.utils import is_stage_template_enabled
 from backend.config.celery_app import app
 
 logger = logging.getLogger(__name__)
+
+
+def _skip_stage(stage: ProjectStage, message: str) -> None:
+    """将阶段标记为跳过。"""
+    now = timezone.now()
+    stage.status = 'skipped'
+    stage.started_at = now
+    stage.completed_at = now
+    stage.error_message = message
+    stage.save(update_fields=['status', 'started_at', 'completed_at', 'error_message'])
+
+
+def _project_task_cache_key(project_id: str) -> str:
+    return f"project_active_tasks:{project_id}"
+
+
+def _unregister_project_task(project_id: str, task_id: str) -> None:
+    task_ids = cache.get(_project_task_cache_key(project_id), [])
+    if not task_ids:
+        return
+
+    remaining_task_ids = [current_task_id for current_task_id in task_ids if current_task_id != task_id]
+    if remaining_task_ids:
+        cache.set(_project_task_cache_key(project_id), remaining_task_ids, timeout=24 * 60 * 60)
+    else:
+        cache.delete(_project_task_cache_key(project_id))
+
+
+def _get_missing_image_storyboard_ids(project: Project, storyboard_ids=None):
+    """返回仍未生成完成图片的分镜ID列表。"""
+    storyboards_query = Storyboard.objects.filter(project=project).order_by('sequence_number')
+
+    if storyboard_ids is not None:
+        storyboards_query = storyboards_query.filter(id__in=storyboard_ids)
+
+    completed_storyboard_ids = set(
+        GeneratedImage.objects.filter(
+            storyboard__project=project,
+            status='completed'
+        ).values_list('storyboard_id', flat=True).distinct()
+    )
+
+    return [str(storyboard.id) for storyboard in storyboards_query if storyboard.id not in completed_storyboard_ids]
+
+
+def _is_image_generation_complete(project: Project) -> bool:
+    """按实际图片产出判断文生图阶段是否真正完成。"""
+    total_storyboards = Storyboard.objects.filter(project=project).count()
+    if total_storyboards == 0:
+        return False
+
+    completed_storyboards = GeneratedImage.objects.filter(
+        storyboard__project=project,
+        status='completed'
+    ).values('storyboard_id').distinct().count()
+
+    return completed_storyboards >= total_storyboards
 
 
 @app.task(
@@ -62,6 +122,19 @@ def execute_llm_stage(
         # 获取项目和阶段
         project = Project.objects.get(id=project_id, user_id=user_id)
         stage = ProjectStage.objects.get(project=project, stage_type=stage_name)
+
+        if not is_stage_template_enabled(project, stage_name):
+            message = f'{stage.get_stage_type_display()} 对应提示词模板未开启，已跳过该阶段'
+            _skip_stage(stage, message)
+            publisher.publish_stage_update(status='skipped', progress=100, message=message)
+            publisher.publish_stage_completed({'stage_type': stage_name, 'status': 'skipped'})
+            return {
+                'success': True,
+                'task_id': task_id,
+                'channel': channel,
+                'skipped': True,
+                'message': message,
+            }
 
         # 更新阶段状态
         stage.status = 'processing'
@@ -178,6 +251,7 @@ def execute_llm_stage(
         return {'success': False, 'error': error_msg}
 
     finally:
+        _unregister_project_task(project_id, task_id)
         publisher.close()
 
 
@@ -221,6 +295,21 @@ def execute_text2image_stage(
         project = Project.objects.get(id=project_id)
         stage = ProjectStage.objects.get(project=project, stage_type=stage_name)
 
+        if not is_stage_template_enabled(project, stage_name):
+            message = '文生图提示词模板未开启，已跳过该阶段'
+            _skip_stage(stage, message)
+            publisher.publish_stage_update(status='skipped', progress=100, message=message)
+            publisher.publish_stage_completed({'stage_type': stage_name, 'status': 'skipped'})
+            return {
+                'success': True,
+                'task_id': task_id,
+                'channel': channel,
+                'skipped': True,
+                'message': message,
+            }
+
+        pending_storyboard_ids = _get_missing_image_storyboard_ids(project, storyboard_ids)
+
         # 更新阶段状态
         stage.status = 'processing'
         stage.started_at = timezone.now()
@@ -239,7 +328,7 @@ def execute_text2image_stage(
         # 执行流式处理
         for chunk in processor.process_stream(
             project_id=project_id,
-            storyboard_ids=storyboard_ids
+            storyboard_ids=pending_storyboard_ids if storyboard_ids is not None else None
         ):
             chunk_type = chunk.get('type')
 
@@ -269,22 +358,44 @@ def execute_text2image_stage(
 
             elif chunk_type == 'done':
                 # 处理完成
-                metadata = chunk.get('metadata', {})
+                result_data = chunk.get('data', {})
+                stage_data = chunk.get('stage', {})
+                stage_status = stage_data.get('status', 'completed')
+                error_message = '' if stage_status == 'completed' else chunk.get('message', '文生图阶段未完成')
 
                 # 更新阶段状态
                 ProjectStage.objects.filter(id=stage.id).update(
-                    status='completed',
-                    completed_at=timezone.now()
+                    status=stage_status,
+                    output_data=result_data,
+                    completed_at=timezone.now(),
+                    error_message=error_message,
                 )
-                # 发布完成消息
-                publisher.publish_done(metadata=metadata)
-                # 发布阶段完成消息 (通知前端刷新画布)
-                publisher.publish_stage_completed(metadata)
+
+                if stage_status == 'completed':
+                    publisher.publish_done(metadata=result_data)
+                    publisher.publish_stage_completed(result_data)
+                else:
+                    publisher.publish_stage_update(
+                        status=stage_status,
+                        progress=100,
+                        message=error_message
+                    )
 
             elif chunk_type == 'error':
                 # 处理错误
                 error_msg = chunk.get('error', '未知错误')
                 raise Exception(error_msg)
+
+        stage.refresh_from_db()
+
+        if stage.status != 'completed':
+            logger.warning(f"文生图任务未完全完成, 项目: {project_id}, 状态: {stage.status}")
+            return {
+                'success': False,
+                'task_id': task_id,
+                'channel': channel,
+                'error': stage.error_message or '文生图阶段未完成'
+            }
 
         logger.info(f"文生图任务完成, 项目: {project_id}")
 
@@ -321,6 +432,7 @@ def execute_text2image_stage(
         return {'success': False, 'error': error_msg}
 
     finally:
+        _unregister_project_task(project_id, task_id)
         publisher.close()
 
 
@@ -363,6 +475,19 @@ def execute_image2video_stage(
         # 获取项目和阶段
         project = Project.objects.get(id=project_id)
         stage = ProjectStage.objects.get(project=project, stage_type=stage_name)
+
+        if not is_stage_template_enabled(project, stage_name):
+            message = '图生视频提示词模板未开启，已跳过该阶段'
+            _skip_stage(stage, message)
+            publisher.publish_stage_update(status='skipped', progress=100, message=message)
+            publisher.publish_stage_completed({'stage_type': stage_name, 'status': 'skipped'})
+            return {
+                'success': True,
+                'task_id': task_id,
+                'channel': channel,
+                'skipped': True,
+                'message': message,
+            }
 
         # 更新阶段状态
         stage.status = 'processing'
@@ -458,6 +583,7 @@ def execute_image2video_stage(
         return {'success': False, 'error': error_msg}
 
     finally:
+        _unregister_project_task(project_id, task_id)
         publisher.close()
 
 
@@ -647,18 +773,36 @@ def run_full_pipeline_task(
                 # 获取阶段
                 stage = ProjectStage.objects.get(project=project, stage_type=stage_name)
 
-                # 检查阶段是否已完成
-                if stage.status == 'completed':
-                    logger.info(f"阶段 {stage_name} 已完成，跳过")
+                if not is_stage_template_enabled(project, stage_name):
+                    message = f'阶段 {stage.get_stage_type_display()} 的提示词模板未开启，自动跳过'
+                    logger.info(message)
+                    _skip_stage(stage, message)
                     skipped_stages.append(stage_name)
-
-                    # 发布跳过消息
                     publisher.publish_stage_update(
-                        status='processing',
+                        status='skipped',
                         progress=int((index + 1) / len(stage_order) * 100),
-                        message=f'阶段 {stage.get_stage_type_display()} 已完成，跳过'
+                        message=message
                     )
                     continue
+
+                # 检查阶段是否已完成
+                if stage.status == 'completed':
+                    if stage_name == 'image_generation' and not _is_image_generation_complete(project):
+                        logger.warning(f"阶段 {stage_name} 状态异常，检测到仍有未生成图片，自动继续补跑")
+                        stage.status = 'failed'
+                        stage.error_message = '检测到仍有分镜图片未生成完成，自动继续补跑'
+                        stage.save(update_fields=['status', 'error_message'])
+                    else:
+                        logger.info(f"阶段 {stage_name} 已完成，跳过")
+                        skipped_stages.append(stage_name)
+
+                        # 发布跳过消息
+                        publisher.publish_stage_update(
+                            status='processing',
+                            progress=int((index + 1) / len(stage_order) * 100),
+                            message=f'阶段 {stage.get_stage_type_display()} 已完成，跳过'
+                        )
+                        continue
 
                 # 执行阶段
                 logger.info(f"开始执行阶段: {stage_name}")
@@ -769,5 +913,5 @@ def run_full_pipeline_task(
         return {'success': False, 'error': error_msg}
 
     finally:
+        _unregister_project_task(project_id, task_id)
         publisher.close()
-

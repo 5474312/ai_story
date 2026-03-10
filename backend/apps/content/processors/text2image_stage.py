@@ -139,25 +139,68 @@ class Text2ImageStageProcessor(StageProcessor):
             # 从 Storyboard 模型获取分镜列表
             from apps.content.models import Storyboard as StoryboardModel
 
-            storyboards_query = StoryboardModel.objects.filter(project=project).order_by('sequence_number')
+            all_storyboards_query = StoryboardModel.objects.filter(project=project).order_by('sequence_number')
+            target_storyboards_query = all_storyboards_query
 
             # 如果指定了分镜ID,则只处理这些分镜
             if storyboard_ids:
-                storyboards_query = storyboards_query.filter(id__in=storyboard_ids)
+                target_storyboards_query = target_storyboards_query.filter(id__in=storyboard_ids)
 
-            storyboards = list(storyboards_query)
+            total_storyboards = all_storyboards_query.count()
+            target_storyboards_count = target_storyboards_query.count()
 
-            if not storyboards:
+            if target_storyboards_count == 0:
                 yield {
                     'type': 'error',
                     'error': '没有找到分镜数据'
                 }
                 return
 
+            completed_storyboard_ids = set(
+                GeneratedImage.objects.filter(
+                    storyboard__project=project,
+                    status='completed'
+                ).values_list('storyboard_id', flat=True).distinct()
+            )
+
+            storyboards_query = target_storyboards_query.exclude(id__in=completed_storyboard_ids)
+            storyboards = list(storyboards_query)
+            skipped_count = target_storyboards_count - len(storyboards)
+
+            if not storyboards:
+                completed_storyboards = len(completed_storyboard_ids)
+                failed_count = max(total_storyboards - completed_storyboards, 0)
+                output_data = {
+                    'total_storyboards': total_storyboards,
+                    'success_count': completed_storyboards,
+                    'failed_count': failed_count,
+                    'generated_count': 0,
+                    'skipped_count': skipped_count,
+                }
+
+                stage.output_data = output_data
+                stage.status = 'completed' if failed_count == 0 else 'failed'
+                stage.error_message = '' if failed_count == 0 else '仍有分镜图片未生成完成'
+                stage.completed_at = timezone.now()
+                stage.save()
+
+                yield {
+                    'type': 'done',
+                    'message': f'图片生成完成: 已完成 {completed_storyboards}/{total_storyboards}',
+                    'data': output_data,
+                    'stage': {
+                        'id': str(stage.id),
+                        'status': stage.status,
+                        'output_data': output_data,
+                        'completed_at': stage.completed_at.isoformat() if stage.completed_at else ''
+                    }
+                }
+                return
+
             total = len(storyboards)
             yield {
                 'type': 'info',
-                'message': f'开始生成图片，共 {total} 个分镜...'
+                'message': f'开始生成图片，待处理 {total} 个分镜...'
             }
 
             # 获取AI客户端配置
@@ -227,20 +270,29 @@ class Text2ImageStageProcessor(StageProcessor):
                     }
 
             # 保存最终结果到阶段
+            completed_storyboards = GeneratedImage.objects.filter(
+                storyboard__project=project,
+                status='completed'
+            ).values('storyboard_id').distinct().count()
+            project_failed_count = max(total_storyboards - completed_storyboards, 0)
+
             output_data = {
-                'total_storyboards': total,
-                'success_count': generated_count,
-                'failed_count': failed_count
+                'total_storyboards': total_storyboards,
+                'success_count': completed_storyboards,
+                'failed_count': project_failed_count,
+                'generated_count': generated_count,
+                'skipped_count': skipped_count,
             }
 
             stage.output_data = output_data
-            stage.status = 'completed' if failed_count == 0 else 'completed'
+            stage.status = 'completed' if project_failed_count == 0 else 'failed'
+            stage.error_message = '' if project_failed_count == 0 else '仍有分镜图片未生成完成'
             stage.completed_at = timezone.now()
             stage.save()
 
             yield {
                 'type': 'done',
-                'message': f'图片生成完成: 成功 {generated_count}/{total}',
+                'message': f'图片生成完成: 已完成 {completed_storyboards}/{total_storyboards}',
                 'data': output_data,
                 'stage': {
                     'id': str(stage.id),
