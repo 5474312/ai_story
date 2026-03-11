@@ -252,6 +252,7 @@ class ModelProviderService:
                     test_prompt
                 )
             elif provider.provider_type == 'text2image':
+                test_prompt = "图片生成：生成一只小狗的照片"
                 result = await ModelProviderService._test_text2image_provider(
                     provider,
                     test_prompt
@@ -350,15 +351,38 @@ class ModelProviderService:
         prompt: str
     ) -> Dict[str, Any]:
         """测试文生图提供商"""
-        # 这里返回模拟结果,实际实现需要调用对应的AI客户端
+        from core.ai_client.factory import create_ai_client
+
+        extra_config = provider.extra_config or {}
+        width = extra_config.get('width', 1024)
+        height = extra_config.get('height', 1024)
+        steps = extra_config.get('steps', 20)
+        negative_prompt = extra_config.get('negative_prompt', '')
+        ratio = extra_config.get('default_ratio') or extra_config.get('ratio', '1:1')
+        resolution = extra_config.get('default_resolution') or extra_config.get('resolution', '2k')
+
+        client = await sync_to_async(create_ai_client)(provider)
+        ai_response = await sync_to_async(client.generate)(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            width=width,
+            height=height,
+            steps=steps,
+            ratio=ratio,
+            resolution=resolution,
+        )
+
         return {
-            'success': True,
-            'text': 'Text2Image test successful',
+            'success': ai_response.success,
+            'text': ai_response.text,
             'data': {
                 'prompt': prompt,
-                'provider': provider.name
+                'provider': provider.name,
+                'images': ai_response.data,
+                'metadata': ai_response.metadata,
             },
-            'tokens_used': 0
+            'tokens_used': ai_response.metadata.get('usage', {}).get('total_tokens', 0),
+            'error': ai_response.error,
         }
 
     @staticmethod

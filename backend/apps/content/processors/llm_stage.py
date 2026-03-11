@@ -152,7 +152,7 @@ class LLMStageProcessor(StageProcessor):
 
             # 获取AI客户端
             ai_client = self._get_ai_client(project)
-
+            ai_client_config = ai_client.config
             # 构建提示词
             prompt = self._build_prompt(project, input_data)
 
@@ -165,15 +165,16 @@ class LLMStageProcessor(StageProcessor):
 
             # 根据阶段类型构建任务列表
             tasks = self._build_tasks(project, input_data)
-
+            max_tokens = ai_client_config.get("max_tokens", self._get_max_tokens())
+            temperature = ai_client_config.get("temperature", self._get_temperature())
             for index, task in enumerate(tasks, 1):
                 # 流式生成
                 full_text = ""
                 for chunk in ai_client.generate_stream(
                     prompt=f'## 用户输入\n{task.get("user_prompt", "")}',
                     system_prompt=prompt,
-                    max_tokens=self._get_max_tokens(),
-                    temperature=self._get_temperature()
+                    max_tokens=max_tokens,
+                    temperature=temperature
                 ):
                     if chunk['type'] == 'token':
                         full_text = chunk['full_text']
@@ -622,11 +623,11 @@ class LLMStageProcessor(StageProcessor):
     def _get_max_tokens(self) -> int:
         """获取最大token数(根据阶段类型)"""
         token_map = {
-            'rewrite': 2000,
-            'storyboard': 4000,
-            'camera_movement': 1000,
+            'rewrite': 4096,
+            'storyboard': 40960,
+            'camera_movement': 4096,
         }
-        return token_map.get(self.stage_type, 2000)
+        return token_map.get(self.stage_type, 4096)
 
     def _get_temperature(self) -> float:
         """获取temperature参数(根据阶段类型)"""
