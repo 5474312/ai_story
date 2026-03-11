@@ -52,7 +52,7 @@
       >{{ data.original_text || '暂无原始文案' }}</div>
     </div>
 
-    <div class="node-section">
+    <!-- <div class="node-section">
       <label class="section-label">改写后文案</label>
       <div class="textarea-autocomplete-wrap">
         <textarea
@@ -88,7 +88,7 @@
           </button>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <div v-if="data && data.model_provider" class="node-metadata">
       <div class="metadata-item">
