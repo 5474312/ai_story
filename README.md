@@ -185,7 +185,10 @@ AI分析每个场景，自动生成合适的镜头运动方案。
 
 
 # todo 
+批量创建多级
+
 运镜生成完要刷新页面才有
 节点未完成被标记为完成
 执行失败的节点重复执行无效
 重新生成图片不生效
+uv run celery -A config worker -l info -P gevent

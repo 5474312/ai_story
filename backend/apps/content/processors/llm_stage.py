@@ -556,30 +556,13 @@ class LLMStageProcessor(StageProcessor):
             provider = self._get_current_provider(project)
 
             # 解析运镜文本(假设返回的是JSON格式)
-            try:
-                from apps.projects.utils import parse_json
-                camera_data = parse_json(generated_text)
-
-                # if not camera_data or not isinstance(camera_data, dict):
-                #     raise ValueError("解析结果为空或格式错误")
-
-                movement_type = camera_data.get('movement_type', '')
-                movement_params = camera_data.get('movement_params', {})
-
-            except (ValueError, KeyError, TypeError) as e:
-                # 记录解析失败的原因
-                logger.warning(
-                    f"运镜数据解析失败: {str(e)}, "
-                    f"将原始文本存储到 movement_params"
-                )
-                movement_type = ''
-                movement_params = {'raw_text': generated_text}
+            movement_params = {'raw_text': generated_text}
 
             # 保存运镜数据
             CameraMovement.objects.update_or_create(
                 storyboard=storyboard,
                 defaults={
-                    'movement_type': movement_type,
+                    'movement_type': "",
                     'movement_params': movement_params,
                     'model_provider': provider,
                     'prompt_used': prompt_used,
