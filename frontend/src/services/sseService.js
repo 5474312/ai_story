@@ -9,6 +9,8 @@
 
 const API_BASE_URL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8010';
 
+let sseClientInstanceId = 0;
+
 /**
  * SSE客户端类
  */
@@ -20,6 +22,9 @@ export class SSEClient {
     this.maxReconnectAttempts = 3;
     this.reconnectDelay = 1000; // 1秒
     this.isAllStagesMode = false; // 是否为全阶段订阅模式
+    this.instanceId = ++sseClientInstanceId;
+    this.lastUrl = null;
+    this.connectStack = null;
   }
 
   /**
@@ -33,13 +38,21 @@ export class SSEClient {
   connect(url, options = {}) {
     const { autoReconnect = false, allStagesMode = false } = options;
     this.isAllStagesMode = allStagesMode;
+    this.lastUrl = url;
+    this.connectStack = new Error(`[SSE#${this.instanceId}] connect stack`).stack;
 
     // 如果已有连接，先关闭
     if (this.eventSource) {
       this.disconnect();
     }
 
-    console.log('[SSE] 正在连接:', url);
+    console.groupCollapsed(`[SSE#${this.instanceId}] 正在连接`);
+    console.log('url:', url);
+    console.log('options:', options);
+    console.log('allStagesMode:', allStagesMode);
+    console.log('autoReconnect:', autoReconnect);
+    console.log('stack:', this.connectStack);
+    console.groupEnd();
 
     try {
       // 创建EventSource连接
@@ -47,7 +60,7 @@ export class SSEClient {
 
       // 监听连接打开
       this.eventSource.onopen = () => {
-        console.log('[SSE] 连接已建立');
+        console.log(`[SSE#${this.instanceId}] 连接已建立`, { url: this.lastUrl });
         this.reconnectAttempts = 0; // 重置重连计数
         this.emit('open', { url });
       };
@@ -74,18 +87,18 @@ export class SSEClient {
             : ['done', 'error', 'stream_end'].includes(data.type);
 
           if (shouldClose) {
-            console.log('[SSE] 收到结束信号，准备关闭连接');
+            console.log(`[SSE#${this.instanceId}] 收到结束信号，准备关闭连接`, { type: data.type, url: this.lastUrl });
             setTimeout(() => this.disconnect(), 100);
           }
         } catch (error) {
-          console.error('[SSE] 消息解析失败:', error, '原始数据:', event.data);
+          console.error(`[SSE#${this.instanceId}] 消息解析失败:`, error, '原始数据:', event.data);
           this.emit('parse_error', { error, rawData: event.data });
         }
       };
 
       // 监听错误
       this.eventSource.onerror = (error) => {
-        console.error('[SSE] 连接错误:', error);
+        console.error(`[SSE#${this.instanceId}] 连接错误:`, error, { url: this.lastUrl, readyState: this.eventSource?.readyState });
         this.emit('error', { error, readyState: this.eventSource?.readyState });
 
         // 如果连接关闭且启用自动重连
@@ -94,7 +107,7 @@ export class SSEClient {
 
           if (autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
-            console.log(`[SSE] 尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+            console.log(`[SSE#${this.instanceId}] 尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`, { url: this.lastUrl });
             setTimeout(() => {
               this.connect(url, options);
             }, this.reconnectDelay * this.reconnectAttempts);
@@ -104,7 +117,7 @@ export class SSEClient {
         }
       };
     } catch (error) {
-      console.error('[SSE] 创建连接失败:', error);
+      console.error(`[SSE#${this.instanceId}] 创建连接失败:`, error, { url: this.lastUrl });
       this.emit('error', { error });
     }
 
@@ -154,7 +167,7 @@ export class SSEClient {
       try {
         handler(data);
       } catch (error) {
-        console.error(`[SSE] 事件处理器执行失败 (${event}):`, error);
+        console.error(`[SSE#${this.instanceId}] 事件处理器执行失败 (${event}):`, error);
       }
     });
   }
@@ -164,7 +177,11 @@ export class SSEClient {
    */
   disconnect() {
     if (this.eventSource) {
-      console.log('[SSE] 正在关闭连接');
+      console.groupCollapsed(`[SSE#${this.instanceId}] 正在关闭连接`);
+      console.log('url:', this.lastUrl);
+      console.log('readyState:', this.eventSource.readyState);
+      console.log('stack:', new Error(`[SSE#${this.instanceId}] disconnect stack`).stack);
+      console.groupEnd();
       this.eventSource.close();
       this.cleanup();
     }
