@@ -30,6 +30,9 @@ app.conf.update(
 
     # Broker连接配置
     broker_connection_retry_on_startup=True,  # Celery 6.0+ 启动时重试连接
+    broker_transport_options={
+        'visibility_timeout': settings.CELERY_BROKER_VISIBILITY_TIMEOUT,
+    },
 
     # 任务结果过期时间 (1小时)
     result_expires=3600,
@@ -53,6 +56,7 @@ app.conf.update(
     # 任务优先级
     task_acks_late=True,
     task_reject_on_worker_lost=True,
+    task_track_started=True,
 
     # Worker配置
     worker_prefetch_multiplier=1,  # 每次只预取1个任务

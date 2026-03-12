@@ -186,6 +186,15 @@ const actions = {
     return project;
   },
 
+  async batchCreateProjects({ commit }, data) {
+    const response = await projectApi.batchCreateProjects(data);
+    const projects = response.results || [];
+    projects.slice().reverse().forEach((project) => {
+      commit('ADD_PROJECT', project);
+    });
+    return response;
+  },
+
   async updateProject({ commit }, { id, data }) {
     const project = await projectApi.updateProject(id, data);
     commit('UPDATE_PROJECT', project);

@@ -50,6 +50,10 @@ export default {
     return apiClient.post('/projects/projects/', data);
   },
 
+  batchCreateProjects(data) {
+    return apiClient.post('/projects/projects/batch_create/', data);
+  },
+
   updateProject(id, data) {
     return apiClient.patch(`/projects/projects/${id}/`, data);
   },

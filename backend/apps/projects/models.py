@@ -110,6 +110,13 @@ class Project(models.Model):
             models.Index(fields=['user', 'status', '-created_at']),
             models.Index(fields=['series', 'sort_order', 'episode_number']),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['series', 'episode_number'],
+                condition=models.Q(series__isnull=False, episode_number__isnull=False),
+                name='uniq_series_episode_number',
+            ),
+        ]
 
     def __str__(self):
         return self.name

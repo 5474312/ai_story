@@ -4,12 +4,57 @@
 遵循单一职责原则(SRP)
 """
 
+from django.db import transaction
 from rest_framework import serializers
 
 from apps.content.models import ContentRewrite
 from apps.prompts.serializers import GlobalVariableListSerializer
 from apps.projects.utils import parse_storyboard_json
 from .models import Project, ProjectStage, ProjectModelConfig, ProjectAssetBinding, Series
+
+
+def get_latest_episode(series):
+    if not series:
+        return None
+
+    return (
+        series.episodes
+        .order_by('-sort_order', '-episode_number', '-created_at')
+        .first()
+    )
+
+
+def initialize_project_resources(project):
+    stage_types = ['rewrite', 'storyboard', 'image_generation', 'camera_movement', 'video_generation']
+    for stage_type in stage_types:
+        ProjectStage.objects.create(
+            project=project,
+            stage_type=stage_type,
+            status='pending'
+        )
+
+    ProjectModelConfig.objects.create(project=project)
+
+    ContentRewrite.objects.create(
+        project=project,
+        original_text=project.original_topic
+    )
+
+
+@transaction.atomic
+def create_project_with_resources(validated_data, user):
+    validated_data['user'] = user
+
+    series = validated_data.get('series')
+    episode_number = validated_data.get('episode_number')
+    if series:
+        Series.objects.select_for_update().filter(pk=series.pk).first()
+        if episode_number and Project.objects.filter(series=series, episode_number=episode_number).exists():
+            raise serializers.ValidationError({'episode_number': f'作品内已存在第{episode_number}集'})
+
+    project = Project.objects.create(**validated_data)
+    initialize_project_resources(project)
+    return project
 
 
 class ProjectStageSerializer(serializers.ModelSerializer):
@@ -386,11 +431,7 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
 
         latest_episode = None
         if series:
-            latest_episode = (
-                series.episodes
-                .order_by('-sort_order', '-episode_number', '-created_at')
-                .first()
-            )
+            latest_episode = get_latest_episode(series)
 
             if not episode_number:
                 last_episode_number = None
@@ -398,6 +439,9 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
                     last_episode_number = latest_episode.episode_number or latest_episode.sort_order or 0
                 attrs['episode_number'] = (last_episode_number or 0) + 1
                 episode_number = attrs['episode_number']
+
+            elif Project.objects.filter(series=series, episode_number=episode_number).exists():
+                raise serializers.ValidationError({'episode_number': f'作品内已存在第{episode_number}集'})
 
             if not attrs.get('prompt_template_set') and latest_episode and latest_episode.prompt_template_set:
                 attrs['prompt_template_set'] = latest_episode.prompt_template_set
@@ -413,26 +457,124 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        validated_data['user'] = user
+        return create_project_with_resources(validated_data, user)
 
-        project = Project.objects.create(**validated_data)
 
-        stage_types = ['rewrite', 'storyboard', 'image_generation', 'camera_movement', 'video_generation']
-        for stage_type in stage_types:
-            ProjectStage.objects.create(
-                project=project,
-                stage_type=stage_type,
-                status='pending'
-            )
+class BatchEpisodeCreateItemSerializer(serializers.Serializer):
+    """批量创建单个分集项"""
 
-        ProjectModelConfig.objects.create(project=project)
+    episode_title = serializers.CharField(max_length=255)
+    original_topic = serializers.CharField()
+    name = serializers.CharField(max_length=255, required=False, allow_blank=True)
 
-        ContentRewrite.objects.create(
-            project=project,
-            original_text=project.original_topic
+    def validate_episode_title(self, value):
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError('分集标题不能为空')
+        return value
+
+    def validate_original_topic(self, value):
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError('原始主题不能为空')
+        return value
+
+    def validate_name(self, value):
+        return (value or '').strip()
+
+
+class ProjectBatchCreateSerializer(serializers.Serializer):
+    """批量创建分集序列化器"""
+
+    series = serializers.PrimaryKeyRelatedField(queryset=Series.objects.all())
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    prompt_template_set = serializers.PrimaryKeyRelatedField(
+        queryset=Project._meta.get_field('prompt_template_set').remote_field.model.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    start_episode_number = serializers.IntegerField(required=False, min_value=1)
+    episodes = BatchEpisodeCreateItemSerializer(many=True, allow_empty=False)
+
+    def validate_description(self, value):
+        return (value or '').strip()
+
+    def validate_episodes(self, value):
+        if not value:
+            raise serializers.ValidationError('请至少添加一个分集')
+        if len(value) > 20:
+            raise serializers.ValidationError('单次最多批量创建20集')
+        return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        series = attrs['series']
+        episodes = attrs['episodes']
+        latest_episode = get_latest_episode(series)
+
+        start_episode_number = attrs.get('start_episode_number')
+        if not start_episode_number:
+            last_episode_number = None
+            if latest_episode:
+                last_episode_number = latest_episode.episode_number or latest_episode.sort_order or 0
+            start_episode_number = (last_episode_number or 0) + 1
+            attrs['start_episode_number'] = start_episode_number
+
+        if not attrs.get('prompt_template_set') and latest_episode and latest_episode.prompt_template_set:
+            attrs['prompt_template_set'] = latest_episode.prompt_template_set
+
+        target_numbers = [start_episode_number + index for index in range(len(episodes))]
+        duplicated_numbers = []
+        existing_numbers = set(
+            Project.objects.filter(series=series, episode_number__in=target_numbers)
+            .values_list('episode_number', flat=True)
         )
+        for number in target_numbers:
+            if number in existing_numbers:
+                duplicated_numbers.append(number)
 
-        return project
+        if duplicated_numbers:
+            duplicated_text = '、'.join(f'第{number}集' for number in duplicated_numbers)
+            raise serializers.ValidationError({'start_episode_number': f'以下分集序号已存在：{duplicated_text}'})
+
+        return attrs
+
+    @transaction.atomic
+    def create(self, validated_data):
+        user = self.context['request'].user
+        series = validated_data['series']
+        description = validated_data.get('description', '')
+        prompt_template_set = validated_data.get('prompt_template_set')
+        start_episode_number = validated_data['start_episode_number']
+        episodes = validated_data['episodes']
+
+        Series.objects.select_for_update().filter(pk=series.pk).first()
+
+        target_numbers = [start_episode_number + index for index in range(len(episodes))]
+        existing_numbers = set(
+            Project.objects.filter(series=series, episode_number__in=target_numbers)
+            .values_list('episode_number', flat=True)
+        )
+        if existing_numbers:
+            duplicated_text = '、'.join(f'第{number}集' for number in sorted(existing_numbers))
+            raise serializers.ValidationError({'start_episode_number': f'以下分集序号已存在：{duplicated_text}'})
+
+        projects = []
+        for index, episode_data in enumerate(episodes):
+            episode_number = start_episode_number + index
+            payload = {
+                'series': series,
+                'description': description,
+                'prompt_template_set': prompt_template_set,
+                'episode_number': episode_number,
+                'episode_title': episode_data['episode_title'],
+                'name': episode_data.get('name') or f'第{episode_number}集',
+                'original_topic': episode_data['original_topic'],
+                'sort_order': episode_number,
+            }
+            projects.append(create_project_with_resources(payload, user))
+
+        return projects
 
 
 class ProjectUpdateSerializer(serializers.ModelSerializer):

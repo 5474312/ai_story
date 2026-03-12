@@ -6,16 +6,21 @@
         <h1 class="page-title">{{ currentSeries?.name || '作品详情' }}</h1>
         <p class="page-subtitle">{{ currentSeries?.description || '管理作品下的全部分集' }}</p>
       </div>
-      <button class="primary-action" @click="goCreateEpisode">
-        <span>创建分集</span>
-      </button>
+      <div class="header-actions">
+        <button class="primary-action" @click="goCreateEpisode">
+          <span>创建分集</span>
+        </button>
+      </div>
     </div>
 
     <LoadingContainer :loading="loading">
       <div v-if="!loading && episodes.length === 0" class="empty-state">
         <div class="empty-hero">这个作品还没有分集</div>
         <p class="empty-hint">先创建第一集，再进入分集详情继续生成文案、分镜和视频。</p>
-        <button class="secondary-action" @click="goCreateEpisode">创建第一集</button>
+        <div class="empty-actions">
+          <button class="secondary-action" @click="goBatchCreateEpisode">批量创建</button>
+          <button class="secondary-action" @click="goCreateEpisode">创建第一集</button>
+        </div>
       </div>
 
       <div v-else class="card-grid">
@@ -109,6 +114,12 @@ export default {
         query: { series_id: this.$route.params.id },
       });
     },
+    goBatchCreateEpisode() {
+      this.$router.push({
+        name: 'ProjectCreate',
+        query: { series_id: this.$route.params.id, mode: 'batch' },
+      });
+    },
     goEpisode(id) {
       this.$router.push({ name: 'ProjectDetail', params: { id } });
     },
@@ -184,19 +195,36 @@ export default {
   margin: 0;
 }
 
-.primary-action {
+.header-actions,
+.empty-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.primary-action,
+.secondary-action {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #ffffff;
-  color: #0f172a;
-  border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 999px;
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.primary-action {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.secondary-action {
+  background: rgba(255, 255, 255, 0.72);
+  color: #0f172a;
+  border: 1px solid rgba(15, 23, 42, 0.12);
 }
 
 .layout-shell.theme-dark .primary-action {
@@ -205,13 +233,21 @@ export default {
   color: #e2e8f0;
 }
 
-.primary-action:hover {
+.layout-shell.theme-dark .secondary-action {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(148, 163, 184, 0.25);
+  color: #e2e8f0;
+}
+
+.primary-action:hover,
+.secondary-action:hover {
   border-color: rgba(20, 184, 166, 0.6);
   box-shadow: 0 12px 24px rgba(20, 184, 166, 0.18);
   transform: translateY(-1px);
 }
 
-.layout-shell.theme-dark .primary-action:hover {
+.layout-shell.theme-dark .primary-action:hover,
+.layout-shell.theme-dark .secondary-action:hover {
   border-color: rgba(94, 234, 212, 0.6);
   box-shadow: 0 12px 24px rgba(2, 6, 23, 0.55);
 }

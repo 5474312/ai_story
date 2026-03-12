@@ -22,6 +22,7 @@ from apps.prompts.models import GlobalVariable
 from apps.prompts.serializers import GlobalVariableListSerializer
 from .models import Project, ProjectAssetBinding, ProjectModelConfig, ProjectStage, Series
 from .serializers import (
+    ProjectBatchCreateSerializer,
     ProjectAssetBindingSerializer,
     ProjectAssetBindingUpdateSerializer,
     ProjectCreateSerializer,
@@ -113,6 +114,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """根据动作选择序列化器"""
+        if self.action == 'batch_create':
+            return ProjectBatchCreateSerializer
         if self.action == 'asset_bindings':
             if self.request.method.lower() == 'get':
                 return ProjectAssetBindingSerializer
@@ -155,6 +158,25 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
+
+    @action(detail=False, methods=['post'])
+    def batch_create(self, request):
+        """批量创建分集。"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        projects = serializer.save()
+        response_serializer = ProjectListSerializer(
+            projects,
+            many=True,
+            context=self.get_serializer_context(),
+        )
+        return Response(
+            {
+                'count': len(response_serializer.data),
+                'results': response_serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     @action(detail=True, methods=['get'])
     def available_assets(self, request, pk=None):

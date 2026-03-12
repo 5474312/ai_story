@@ -22,6 +22,7 @@ Use `cd backend && pytest --cov apps --cov core` as the primary suite, storing n
 - 信息区块优先采用 `card-top / card-meta / card-footer` 的三段式结构，避免随意拼接按钮和说明文字。
 - 空状态需与提示词管理页一致，使用标题、说明、副按钮的组合，不要使用过于朴素的占位文案。
 - 新增或修改项目管理相关 UI 时，优先保持与提示词管理页一致的动效节奏、边框透明度、阴影层级和颜色语义，除非用户明确要求例外。
+- 不要过度使用卡片样式
 
 ## Commit & Pull Request Guidelines
 Write short imperative commit subjects under roughly 60 characters (module prefix optional) and reference any related ticket or doc. PRs must explain intent, list commands executed, surface schema or env var changes, attach UI screenshots when applicable, and tag a reviewer from the affected layer.
