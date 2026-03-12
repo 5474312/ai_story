@@ -591,40 +591,41 @@ const actions = {
   },
 
 
-  async runDebugSessionStream({ commit, rootGetters }, { id, data, onEvent }) {
+  async runDebugSessionStream({ commit }, { id, data, onEvent }) {
     commit('SET_DEBUG_LOADING', true);
     try {
-      const token = rootGetters['auth/accessToken'];
-      const response = await promptDebugAPI.runSessionStream(id, data, token);
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
+      const initResponse = await promptDebugAPI.initRunSessionStream(id, data);
+      const streamToken = initResponse.stream_token;
+      const baseUrl = (process.env.VUE_APP_API_BASE_URL || '/api/v1').replace(/\/$/, '');
+      const streamUrl = `${baseUrl}/prompts/debug-sessions/${id}/run-stream/?stream_token=${streamToken}`;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      await new Promise((resolve, reject) => {
+        const eventSource = new EventSource(streamUrl);
 
-        buffer += decoder.decode(value, { stream: true });
-        const chunks = buffer.split('\n\n');
-        buffer = chunks.pop() || '';
-
-        chunks.forEach((chunk) => {
-          const line = chunk
-            .split('\n')
-            .find(item => item.startsWith('data: '));
-          if (!line) return;
-          const payload = line.slice(6);
-          if (!payload) return;
+        eventSource.onmessage = (message) => {
           try {
-            const event = JSON.parse(payload);
+            const event = JSON.parse(message.data);
             if (onEvent) {
               onEvent(event);
             }
+            if (event.type === 'done') {
+              eventSource.close();
+              resolve();
+            } else if (event.type === 'error') {
+              eventSource.close();
+              reject(new Error(event.error || '流式调试失败'));
+            }
           } catch (error) {
-            console.error('解析流式调试事件失败:', error, payload);
+            eventSource.close();
+            reject(error);
           }
-        });
-      }
+        };
+
+        eventSource.onerror = () => {
+          eventSource.close();
+          reject(new Error('流式连接失败'));
+        };
+      });
 
       const session = await promptDebugAPI.getSession(id);
       const artifacts = await promptDebugAPI.getArtifacts({ session_id: id });

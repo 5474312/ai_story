@@ -307,23 +307,12 @@ export const promptDebugAPI = {
     })
   },
 
-  async runSessionStream(id, data = {}, token = '') {
-    const baseUrl = (process.env.VUE_APP_API_BASE_URL || '/api/v1').replace(/\/$/, '')
-    const response = await fetch(`${baseUrl}/prompts/debug-sessions/${id}/run-stream/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(data),
+  initRunSessionStream(id, data) {
+    return apiClient({
+      url: `/prompts/debug-sessions/${id}/run-stream-init/`,
+      method: 'post',
+      data,
     })
-
-    if (!response.ok) {
-      const text = await response.text()
-      throw new Error(text || '流式调试请求失败')
-    }
-
-    return response
   },
 
   saveTemplate(id, data) {

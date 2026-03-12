@@ -6,14 +6,16 @@
 
 import asyncio
 import json
+import uuid
 
 from django.db.models import Q
+from django.core.cache import cache
 from django_filters.rest_framework import DjangoFilterBackend
 from jinja2 import Template
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, renderers
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.http import StreamingHttpResponse
 
@@ -44,6 +46,16 @@ from .serializers import (
 )
 from .services import PromptEvaluationService
 from .debug_services import PromptDebugService
+
+class ServerSentEventRenderer(renderers.BaseRenderer):
+    media_type = 'text/event-stream'
+    format = 'event-stream'
+    charset = 'utf-8'
+    render_style = 'binary'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return data
+
 
 
 class PromptTemplateSetViewSet(viewsets.ModelViewSet):
@@ -652,8 +664,8 @@ class PromptDebugSessionViewSet(viewsets.ModelViewSet):
 
         return Response(PromptDebugRunSerializer(run).data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['post'], url_path='run-stream')
-    def run_stream(self, request, pk=None):
+    @action(detail=True, methods=['post'], url_path='run-stream-init')
+    def run_stream_init(self, request, pk=None):
         session = self.get_object()
         if session.stage_type not in ('rewrite', 'storyboard', 'camera_movement'):
             return Response({'error': '仅 LLM 类型阶段支持流式调试'}, status=status.HTTP_400_BAD_REQUEST)
@@ -663,26 +675,69 @@ class PromptDebugSessionViewSet(viewsets.ModelViewSet):
         validated = serializer.validated_data
         template_content = validated.get('template_content') or session.draft_template_content or session.prompt_template.template_content
 
+        stream_token = uuid.uuid4().hex
+        cache.set(
+            f'prompt_debug_stream:{stream_token}',
+            {
+                'session_id': str(session.id),
+                'user_id': request.user.id,
+                'template_content': template_content,
+                'variable_values': validated.get('variable_values') or {},
+                'input_payload': validated.get('input_payload') or {},
+                'source_artifact_id': str(validated.get('source_artifact_id') or ''),
+                'provider_id': str(validated.get('model_provider_id') or ''),
+            },
+            timeout=300,
+        )
+
+        return Response({'stream_token': stream_token})
+
+    @action(detail=True, methods=['get'], url_path='run-stream', permission_classes=[AllowAny], renderer_classes=[ServerSentEventRenderer])
+    def run_stream(self, request, pk=None):
+        session = PromptDebugSession.objects.select_related('created_by', 'prompt_template').filter(id=pk).first()
+        if not session:
+            return Response({'error': '调试会话不存在'}, status=status.HTTP_404_NOT_FOUND)
+        if session.stage_type not in ('rewrite', 'storyboard', 'camera_movement'):
+            return Response({'error': '仅 LLM 类型阶段支持流式调试'}, status=status.HTTP_400_BAD_REQUEST)
+
+        stream_token = request.query_params.get('stream_token', '').strip()
+        if not stream_token:
+            return Response({'error': '缺少 stream_token'}, status=status.HTTP_400_BAD_REQUEST)
+
+        cache_key = f'prompt_debug_stream:{stream_token}'
+        stream_payload = cache.get(cache_key)
+        if not stream_payload:
+            return Response({'error': '流式调试令牌无效或已过期'}, status=status.HTTP_404_NOT_FOUND)
+
+        if stream_payload.get('session_id') != str(session.id):
+            return Response({'error': '流式调试令牌不匹配'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if stream_payload.get('user_id') != session.created_by_id:
+            return Response({'error': '流式调试令牌无权限'}, status=status.HTTP_403_FORBIDDEN)
+
         def event_stream():
             try:
                 for event in PromptDebugService.stream_llm_session(
                     session=session,
-                    user=request.user,
-                    template_content=template_content,
-                    variable_values=validated.get('variable_values') or {},
-                    input_payload=validated.get('input_payload') or {},
-                    source_artifact_id=validated.get('source_artifact_id'),
-                    provider_id=validated.get('model_provider_id'),
+                    user=session.created_by,
+                    template_content=stream_payload.get('template_content') or session.prompt_template.template_content,
+                    variable_values=stream_payload.get('variable_values') or {},
+                    input_payload=stream_payload.get('input_payload') or {},
+                    source_artifact_id=stream_payload.get('source_artifact_id') or None,
+                    provider_id=stream_payload.get('provider_id') or None,
                 ):
                     payload = json.dumps(event, ensure_ascii=False)
                     yield f'data: {payload}\n\n'
             except Exception as exc:
                 payload = json.dumps({'type': 'error', 'error': str(exc)}, ensure_ascii=False)
                 yield f'data: {payload}\n\n'
+            finally:
+                cache.delete(cache_key)
 
         response = StreamingHttpResponse(event_stream(), content_type='text/event-stream; charset=utf-8')
         response['Cache-Control'] = 'no-cache, no-transform'
         response['X-Accel-Buffering'] = 'no'
+        response['Access-Control-Allow-Origin'] = '*'
         return response
 
     @action(detail=True, methods=['post'])

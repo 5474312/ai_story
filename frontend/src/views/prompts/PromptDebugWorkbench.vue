@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <LoadingContainer :loading="loadingPage || debugLoading">
+    <LoadingContainer :loading="loadingPage">
       <div v-if="session" class="workbench-grid">
         <section class="workbench-card editor-card">
           <div class="card-top">
@@ -67,6 +67,7 @@
               <h2 class="card-title">本次结果</h2>
               <p class="card-desc">运行后自动保存结果与联动资产</p>
             </div>
+            <span v-if="debugLoading && isLlmStage" class="streaming-pill">流式生成中</span>
           </div>
 
           <div v-if="displayRun" class="result-blocks">
@@ -686,5 +687,11 @@ export default {
 :global(.dark) .field-label,
 :global(.dark) .asset-preview-text {
   color: rgba(226, 232, 240, 0.75);
+}
+
+:global(.dark) .streaming-pill {
+  background: rgba(34, 211, 238, 0.18);
+  color: #e2e8f0;
+  border-color: rgba(103, 232, 249, 0.32);
 }
 </style>
