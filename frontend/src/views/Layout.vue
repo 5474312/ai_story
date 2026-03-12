@@ -140,6 +140,10 @@
       <main class="main-surface">
         <router-view />
       </main>
+
+      <footer class="layout-footer">
+        <p>© {{ currentYear }} AI Story xhongc 版权所有</p>
+      </footer>
     </div>
 
     <!-- 移动端侧边栏 -->
@@ -353,6 +357,9 @@ export default {
       // 获取用户名首字母作为头像
       return this.username ? this.username.charAt(0).toUpperCase() : 'U';
     },
+    currentYear() {
+      return new Date().getFullYear();
+    },
   },
   methods: {
     ...mapActions('auth', ['logout']),
@@ -507,6 +514,16 @@ export default {
   background: rgba(148, 163, 184, 0.18);
 }
 
+.layout-footer {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.layout-footer p {
+  margin: 0;
+}
+
 .icon-button {
   display: inline-flex;
   align-items: center;
@@ -544,7 +561,7 @@ export default {
 
 .main-surface {
   flex: 1;
-  margin: 18px 20px 24px;
+  margin: 18px 20px 14px;
   padding: 22px;
   border-radius: 24px;
   background: var(--surface);
