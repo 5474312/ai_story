@@ -8,23 +8,54 @@
     <!-- 节点头部 -->
     <div class="node-header">
       <div class="header-left">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+          />
         </svg>
         <span class="node-title">运镜</span>
       </div>
       <div class="header-actions">
-        <span v-if="status === 'processing'" class="loading loading-spinner loading-xs"></span>
-        <svg v-else-if="status === 'completed'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        <span
+          v-if="status === 'processing'"
+          class="loading loading-spinner loading-xs"
+        />
+        <svg
+          v-else-if="status === 'completed'"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-3 w-3 text-success"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
         </svg>
         <button
           class="btn btn-circle btn-xs btn-primary"
-          @click="handleGenerate"
           title="生成运镜"
+          @click="handleGenerate"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-3 w-3"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M8 5v14l11-7z" />
           </svg>
         </button>
       </div>
@@ -55,7 +86,10 @@
       </datalist>
     </div> -->
     <!-- 运镜参数 -->
-    <div v-if="status === 'completed' && movementParams" class="node-description">
+    <div
+      v-if="status === 'completed' && movementParams"
+      class="node-description"
+    >
       <label class="content-label">运镜参数</label>
       <textarea
         v-model="localDescription"
@@ -64,9 +98,8 @@
         placeholder="输入运镜参数描述"
         rows="10"
         @blur="handleDescriptionChange"
-      ></textarea>
+      />
     </div>
-
   </div>
 </template>
 

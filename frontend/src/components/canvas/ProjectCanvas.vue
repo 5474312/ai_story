@@ -11,17 +11,45 @@
             @click="toggleEpisodeMenu"
           >
             <span class="project-name text-lg font-bold">{{ currentEpisodeLabel }}</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="title-chevron" :class="{ open: showEpisodeMenu }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="title-chevron"
+              :class="{ open: showEpisodeMenu }"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
 
           <transition name="episode-dropdown">
-            <div v-if="showEpisodeMenu" class="episode-dropdown">
-              <div class="episode-dropdown-header">快速切换分集</div>
+            <div
+              v-if="showEpisodeMenu"
+              class="episode-dropdown"
+            >
+              <div class="episode-dropdown-header">
+                快速切换分集
+              </div>
               <div class="episode-search-box">
-                <svg xmlns="http://www.w3.org/2000/svg" class="episode-search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="episode-search-icon"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
                 <input
                   ref="episodeSearchInput"
@@ -35,7 +63,10 @@
                   @keydown.esc.prevent="closeEpisodeMenu"
                 >
               </div>
-              <div v-if="filteredEpisodes.length" class="episode-options">
+              <div
+                v-if="filteredEpisodes.length"
+                class="episode-options"
+              >
                 <button
                   v-for="(episode, index) in filteredEpisodes"
                   :key="episode.id"
@@ -56,20 +87,42 @@
                   <span class="episode-option-status">{{ episode.status_display }}</span>
                 </button>
               </div>
-              <div v-else class="episode-empty">没有匹配的分集</div>
+              <div
+                v-else
+                class="episode-empty"
+              >
+                没有匹配的分集
+              </div>
             </div>
           </transition>
         </div>
         <div class="ui-chip-block ui-chip-inline">
-          <status-badge :status="project.status" type="project" />
+          <status-badge
+            :status="project.status"
+            type="project"
+          />
         </div>
         <div class="meta-item ui-chip-block">
           <span class="meta-value">{{ formatDate(project.updated_at) }}</span>
         </div>
 
-        <div v-if="project.prompt_set_name" class="meta-item ui-chip-block">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <div
+          v-if="project.prompt_set_name"
+          class="meta-item ui-chip-block"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
           </svg>
           <span class="meta-label">模板:</span>
           <span class="meta-value">{{ project.prompt_set_name }}</span>
@@ -83,16 +136,41 @@
             :disabled="loadingAssets || savingAssetBindings"
             @click.stop="toggleAssetDrawer"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+              />
             </svg>
             资产 {{ boundAssets.length }}
           </button>
         </div>
 
-        <div v-if="project.jianying_draft_path" class="draft-info ui-chip-block">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div
+          v-if="project.jianying_draft_path"
+          class="draft-info ui-chip-block"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <span class="text-xs">剪映草稿已生成</span>
         </div>
@@ -183,15 +261,37 @@
         >
           <div class="asset-drawer-header">
             <div>
-              <div class="asset-drawer-title">资产变量</div>
-              <div class="asset-drawer-subtitle">绑定后在节点输入 <code>`{ {`</code> 即可联想选择变量</div>
+              <div class="asset-drawer-title">
+                资产变量
+              </div>
+              <div class="asset-drawer-subtitle">
+                绑定后在节点输入 <code>`{ {`</code> 即可联想选择变量
+              </div>
             </div>
-            <button class="btn btn-ghost btn-xs" @click.stop="showAssetDrawer = false">关闭</button>
+            <button
+              class="btn btn-ghost btn-xs"
+              @click.stop="showAssetDrawer = false"
+            >
+              关闭
+            </button>
           </div>
 
-          <div v-if="loadingAssets" class="asset-drawer-empty">正在加载可用变量...</div>
-          <div v-else-if="!availableAssets.length" class="asset-drawer-empty">暂无可绑定变量</div>
-          <div v-else class="asset-drawer-list">
+          <div
+            v-if="loadingAssets"
+            class="asset-drawer-empty"
+          >
+            正在加载可用变量...
+          </div>
+          <div
+            v-else-if="!availableAssets.length"
+            class="asset-drawer-empty"
+          >
+            暂无可绑定变量
+          </div>
+          <div
+            v-else
+            class="asset-drawer-list"
+          >
             <label
               v-for="asset in availableAssets"
               :key="asset.id"
@@ -206,7 +306,10 @@
               <div class="asset-drawer-meta">
                 <div class="asset-drawer-key-row">
                   <code class="asset-drawer-key">{{ asset.key }}</code>
-                  <span v-if="asset.group" class="asset-drawer-group">{{ asset.group }}</span>
+                  <span
+                    v-if="asset.group"
+                    class="asset-drawer-group"
+                  >{{ asset.group }}</span>
                 </div>
                 <div class="asset-drawer-type">{{ asset.variable_type_display }} · {{ asset.scope_display }}</div>
               </div>
@@ -222,98 +325,115 @@
         :connections="connections"
         :nodes="allNodePositions"
       >
-
-      <!-- 文案改写节点 -->
-      <rewrite-node-expanded
-        v-if="project"
-        :status="rewriteStage ? rewriteStage.status : 'pending'"
-        :position="nodePositions.rewrite"
-        :data="rewriteStage ? rewriteStage.domain_data : null"
-        :show-rewrite-node="showRewriteNode"
-        :asset-options="boundAssets"
-        :original-topic="project.original_topic"
-        :project-id="project.id"
-        @execute="handleExecuteStage"
-        @save="handleSaveStage"
-        @storyboard-generated="$emit('storyboard-generated')"
-        @node-dblclick="focusCanvasNode('rewrite')"
-      />
-
-      <!-- 每个分镜及其子节点 -->
-      <template v-for="(storyboard, index) in storyboards">
-        <!-- 分镜节点 -->
-        <storyboard-node
-          v-if="showStoryboardNode"
-          :key="`storyboard-${index}`"
-          :storyboard="storyboard"
-          :index="index"
-          :position="calculateStoryboardPosition(index)"
+        <!-- 文案改写节点 -->
+        <rewrite-node-expanded
+          v-if="project"
+          :status="rewriteStage ? rewriteStage.status : 'pending'"
+          :position="nodePositions.rewrite"
+          :data="rewriteStage ? rewriteStage.domain_data : null"
+          :show-rewrite-node="showRewriteNode"
           :asset-options="boundAssets"
-          @node-dblclick="focusCanvasNode(`storyboard-${index}`)"
-          @save="handleSaveStoryboard"
+          :original-topic="project.original_topic"
+          :project-id="project.id"
+          @execute="handleExecuteStage"
+          @save="handleSaveStage"
+          @storyboard-generated="$emit('storyboard-generated')"
+          @node-dblclick="focusCanvasNode('rewrite')"
         />
 
-        <!-- 文生图节点 -->
-        <image-gen-node
-          v-if="showImageNode(storyboard)"
-          :key="`image-${index}`"
-          :status="getImageStatus(storyboard)"
-          :position="calculateImagePosition(index)"
-          :image-url="getImageUrl(storyboard)"
-          :media-width="getStoryboardMediaDimensions(storyboard).width"
-          :media-height="getStoryboardMediaDimensions(storyboard).height"
-          :prompt="storyboard.image_prompt"
-          :storyboard-id="storyboard.id"
-          @node-dblclick="focusCanvasNode(`image-${index}`)"
-          @generate="handleGenerateImage"
-          @media-loaded="handleImageMediaLoaded"
-          @save="handleSaveStoryboard"
-        />
+        <!-- 每个分镜及其子节点 -->
+        <template v-for="(storyboard, index) in storyboards">
+          <!-- 分镜节点 -->
+          <storyboard-node
+            v-if="showStoryboardNode"
+            :key="`storyboard-${index}`"
+            :storyboard="storyboard"
+            :index="index"
+            :position="calculateStoryboardPosition(index)"
+            :asset-options="boundAssets"
+            @node-dblclick="focusCanvasNode(`storyboard-${index}`)"
+            @save="handleSaveStoryboard"
+          />
 
-        <!-- 运镜节点 -->
-        <camera-node
-          v-if="showCameraNode(storyboard)"
-          :key="`camera-${index}`"
-          :status="getCameraStatus(storyboard)"
-          :position="calculateCameraPosition(index)"
-          :movement-type="getCameraMovementType(storyboard)"
-          :movement-params="getCameraMovementParams(storyboard)"
-          :storyboard-id="storyboard.id"
-          :camera-id="getCameraId(storyboard)"
-          :can-generate="getImageStatus(storyboard) === 'completed'"
-          @node-dblclick="focusCanvasNode(`camera-${index}`)"
-          @generate="handleGenerateCamera"
-          @save="handleSaveCamera"
-        />
+          <!-- 文生图节点 -->
+          <image-gen-node
+            v-if="showImageNode(storyboard)"
+            :key="`image-${index}`"
+            :status="getImageStatus(storyboard)"
+            :position="calculateImagePosition(index)"
+            :image-url="getImageUrl(storyboard)"
+            :media-width="getStoryboardMediaDimensions(storyboard).width"
+            :media-height="getStoryboardMediaDimensions(storyboard).height"
+            :prompt="storyboard.image_prompt"
+            :storyboard-id="storyboard.id"
+            @node-dblclick="focusCanvasNode(`image-${index}`)"
+            @generate="handleGenerateImage"
+            @media-loaded="handleImageMediaLoaded"
+            @save="handleSaveStoryboard"
+          />
 
-        <!-- 视频生成节点 -->
-        <video-gen-node
-          v-if="showVideoNode(storyboard)"
-          :key="`video-${index}`"
-          :status="getVideoStatus(storyboard)"
-          :position="calculateVideoPosition(index)"
-          :video-url="getVideoUrl(storyboard)"
-          :video-info="getVideoInfo(storyboard)"
-          :media-width="getStoryboardMediaDimensions(storyboard).width"
-          :media-height="getStoryboardMediaDimensions(storyboard).height"
-          :storyboard-id="storyboard.id"
-          :can-generate="getCameraStatus(storyboard) === 'completed'"
-          @node-dblclick="focusCanvasNode(`video-${index}`)"
-          @generate="handleGenerateVideo"
-        />
-      </template>
+          <!-- 运镜节点 -->
+          <camera-node
+            v-if="showCameraNode(storyboard)"
+            :key="`camera-${index}`"
+            :status="getCameraStatus(storyboard)"
+            :position="calculateCameraPosition(index)"
+            :movement-type="getCameraMovementType(storyboard)"
+            :movement-params="getCameraMovementParams(storyboard)"
+            :storyboard-id="storyboard.id"
+            :camera-id="getCameraId(storyboard)"
+            :can-generate="getImageStatus(storyboard) === 'completed'"
+            @node-dblclick="focusCanvasNode(`camera-${index}`)"
+            @generate="handleGenerateCamera"
+            @save="handleSaveCamera"
+          />
 
-      <!-- 空状态提示 -->
-      <div v-if="!showRewriteNode && !showStoryboardNode" class="empty-canvas">
-        <div class="empty-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
+          <!-- 视频生成节点 -->
+          <video-gen-node
+            v-if="showVideoNode(storyboard)"
+            :key="`video-${index}`"
+            :status="getVideoStatus(storyboard)"
+            :position="calculateVideoPosition(index)"
+            :video-url="getVideoUrl(storyboard)"
+            :video-info="getVideoInfo(storyboard)"
+            :media-width="getStoryboardMediaDimensions(storyboard).width"
+            :media-height="getStoryboardMediaDimensions(storyboard).height"
+            :storyboard-id="storyboard.id"
+            :can-generate="getCameraStatus(storyboard) === 'completed'"
+            @node-dblclick="focusCanvasNode(`video-${index}`)"
+            @generate="handleGenerateVideo"
+          />
+        </template>
+
+        <!-- 空状态提示 -->
+        <div
+          v-if="!showRewriteNode && !showStoryboardNode"
+          class="empty-canvas"
+        >
+          <div class="empty-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-16 w-16"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <div class="empty-text">
+            暂无工作流数据
+          </div>
+          <div class="empty-hint">
+            请先执行文案改写阶段
+          </div>
         </div>
-        <div class="empty-text">暂无工作流数据</div>
-        <div class="empty-hint">请先执行文案改写阶段</div>
-      </div>
-    </flow-canvas>
+      </flow-canvas>
     </div>
   </div>
 </template>
@@ -670,16 +790,6 @@ export default {
       return positions;
     }
   },
-  mounted() {
-    document.addEventListener('click', this.handleDocumentClick);
-    this.loadProjectAssets();
-    // 调试信息
-    console.log('[ProjectCanvas] Mounted');
-    console.log('[ProjectCanvas] Project:', this.project);
-    console.log('[ProjectCanvas] Stages:', this.stages);
-    console.log('[ProjectCanvas] Storyboards:', this.storyboards);
-    console.log('[ProjectCanvas] AllNodePositions:', this.allNodePositions);
-  },
   watch: {
     '$route.params.id'() {
       this.showEpisodeMenu = false;
@@ -757,6 +867,19 @@ export default {
         }
       }
     }
+  },
+  mounted() {
+    document.addEventListener('click', this.handleDocumentClick);
+    this.loadProjectAssets();
+    // 调试信息
+    console.log('[ProjectCanvas] Mounted');
+    console.log('[ProjectCanvas] Project:', this.project);
+    console.log('[ProjectCanvas] Stages:', this.stages);
+    console.log('[ProjectCanvas] Storyboards:', this.storyboards);
+    console.log('[ProjectCanvas] AllNodePositions:', this.allNodePositions);
+  },
+  beforeDestroy() {
+    document.removeEventListener('click', this.handleDocumentClick);
   },
   methods: {
     formatDate,
@@ -1465,9 +1588,6 @@ export default {
         videos: {}
       };
     }
-  },
-  beforeDestroy() {
-    document.removeEventListener('click', this.handleDocumentClick);
   }
 };
 </script>

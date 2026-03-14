@@ -70,10 +70,16 @@
               </svg>
             </div>
             <div class="confirm-dialog__copy">
-              <h3 :id="titleId" class="confirm-dialog__title">
+              <h3
+                :id="titleId"
+                class="confirm-dialog__title"
+              >
                 {{ state.title }}
               </h3>
-              <p :id="contentId" class="confirm-dialog__message">
+              <p
+                :id="contentId"
+                class="confirm-dialog__message"
+              >
                 {{ state.message }}
               </p>
             </div>

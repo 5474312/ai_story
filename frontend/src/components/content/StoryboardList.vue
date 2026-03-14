@@ -9,10 +9,15 @@
         :md="8"
         :lg="6"
       >
-        <el-card class="storyboard-card" shadow="hover">
+        <el-card
+          class="storyboard-card"
+          shadow="hover"
+        >
           <div class="storyboard-header">
             <span class="sequence-number">#{{ storyboard.sequence_number }}</span>
-            <el-tag size="small">{{ formatDuration(storyboard.duration_seconds) }}</el-tag>
+            <el-tag size="small">
+              {{ formatDuration(storyboard.duration_seconds) }}
+            </el-tag>
           </div>
 
           <div class="storyboard-content">
@@ -23,14 +28,24 @@
             <p>{{ storyboard.narration_text }}</p>
 
             <h4>图片提示词</h4>
-            <p class="image-prompt">{{ storyboard.image_prompt }}</p>
+            <p class="image-prompt">
+              {{ storyboard.image_prompt }}
+            </p>
           </div>
 
           <div class="storyboard-footer">
-            <el-button size="small" type="text" @click="handleViewImages(storyboard)">
+            <el-button
+              size="small"
+              type="text"
+              @click="handleViewImages(storyboard)"
+            >
               查看图片
             </el-button>
-            <el-button size="small" type="text" @click="handleViewVideos(storyboard)">
+            <el-button
+              size="small"
+              type="text"
+              @click="handleViewVideos(storyboard)"
+            >
               查看视频
             </el-button>
           </div>
@@ -38,8 +53,11 @@
       </el-col>
     </el-row>
 
-    <div v-if="storyboards.length === 0" class="empty-state">
-      <el-empty description="暂无分镜数据"></el-empty>
+    <div
+      v-if="storyboards.length === 0"
+      class="empty-state"
+    >
+      <el-empty description="暂无分镜数据" />
     </div>
   </div>
 </template>
@@ -76,12 +94,12 @@ export default {
       }
     },
 
-    handleViewImages(storyboard) {
+    handleViewImages() {
       // TODO: 实现查看图片功能
       this.$message.info('查看图片功能待实现');
     },
 
-    handleViewVideos(storyboard) {
+    handleViewVideos() {
       // TODO: 实现查看视频功能
       this.$message.info('查看视频功能待实现');
     },

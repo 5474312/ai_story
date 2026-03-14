@@ -2,22 +2,44 @@
   <div class="page-shell project-series-list">
     <div class="page-header">
       <div class="page-header-main">
-        <h1 class="page-title">作品管理</h1>
-        <p class="page-subtitle">{{ seriesList.length }} 个作品</p>
+        <h1 class="page-title">
+          作品管理
+        </h1>
+        <p class="page-subtitle">
+          {{ seriesList.length }} 个作品
+        </p>
       </div>
-      <button class="primary-action" @click="openCreateModal">
+      <button
+        class="primary-action"
+        @click="openCreateModal"
+      >
         <span>创建作品</span>
       </button>
     </div>
 
     <LoadingContainer :loading="loading">
-      <div v-if="!loading && seriesList.length === 0" class="empty-state">
-        <div class="empty-hero">暂无作品</div>
-        <p class="empty-hint">创建一个作品后，就可以在作品下持续生产多集内容</p>
-        <button class="secondary-action" @click="openCreateModal">创建作品</button>
+      <div
+        v-if="!loading && seriesList.length === 0"
+        class="empty-state"
+      >
+        <div class="empty-hero">
+          暂无作品
+        </div>
+        <p class="empty-hint">
+          创建一个作品后，就可以在作品下持续生产多集内容
+        </p>
+        <button
+          class="secondary-action"
+          @click="openCreateModal"
+        >
+          创建作品
+        </button>
       </div>
 
-      <div v-else class="card-grid">
+      <div
+        v-else
+        class="card-grid"
+      >
         <article
           v-for="series in seriesList"
           :key="series.id"
@@ -29,8 +51,12 @@
         >
           <div class="card-top">
             <div>
-              <h2 class="card-title">{{ series.name }}</h2>
-              <p class="card-desc">{{ series.description || '暂无作品描述' }}</p>
+              <h2 class="card-title">
+                {{ series.name }}
+              </h2>
+              <p class="card-desc">
+                {{ series.description || '暂无作品描述' }}
+              </p>
             </div>
             <span class="pill">作品</span>
           </div>
@@ -49,7 +75,12 @@
           <div class="card-footer">
             <span class="meta-time">更新于 {{ formatDate(series.updated_at) }}</span>
             <div class="project-card-actions">
-              <button class="project-card-action" @click.stop="openEditModal(series)">编辑</button>
+              <button
+                class="project-card-action"
+                @click.stop="openEditModal(series)"
+              >
+                编辑
+              </button>
               <button
                 class="project-card-action project-card-action--danger"
                 :disabled="deletingSeriesId === series.id"
@@ -63,10 +94,17 @@
       </div>
     </LoadingContainer>
 
-    <dialog ref="createModal" class="modal">
+    <dialog
+      ref="createModal"
+      class="modal"
+    >
       <div class="modal-box form-modal-box">
-        <h3 class="font-bold text-lg">{{ isEditing ? '编辑作品' : '创建作品' }}</h3>
-        <p class="form-hint">作品作为顶层容器，下面可以继续创建多个分集。</p>
+        <h3 class="font-bold text-lg">
+          {{ isEditing ? '编辑作品' : '创建作品' }}
+        </h3>
+        <p class="form-hint">
+          作品作为顶层容器，下面可以继续创建多个分集。
+        </p>
         <div class="form-control mt-4">
           <label class="label">
             <span class="label-text">作品名称</span>
@@ -87,17 +125,31 @@
             rows="4"
             placeholder="可选，描述作品定位或创作方向"
             class="textarea textarea-bordered w-full"
-          ></textarea>
+          />
         </div>
         <div class="modal-action">
-          <button class="btn" @click="closeCreateModal">取消</button>
-          <button class="btn btn-primary" :disabled="submitting" @click="submitForm">
+          <button
+            class="btn"
+            @click="closeCreateModal"
+          >
+            取消
+          </button>
+          <button
+            class="btn btn-primary"
+            :disabled="submitting"
+            @click="submitForm"
+          >
             {{ submitting ? (isEditing ? '保存中...' : '创建中...') : (isEditing ? '保存' : '创建') }}
           </button>
         </div>
       </div>
-      <form method="dialog" class="modal-backdrop">
-        <button @click="closeCreateModal">关闭</button>
+      <form
+        method="dialog"
+        class="modal-backdrop"
+      >
+        <button @click="closeCreateModal">
+          关闭
+        </button>
       </form>
     </dialog>
   </div>

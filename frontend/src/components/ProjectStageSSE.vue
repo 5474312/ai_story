@@ -3,7 +3,9 @@
     <!-- 连接控制 -->
     <div class="card bg-base-100 shadow-xl mb-4">
       <div class="card-body">
-        <h2 class="card-title">SSE 流式连接控制</h2>
+        <h2 class="card-title">
+          SSE 流式连接控制
+        </h2>
 
         <div class="form-control">
           <label class="label">
@@ -15,7 +17,7 @@
             placeholder="输入项目ID"
             class="input input-bordered"
             :disabled="isConnected"
-          />
+          >
         </div>
 
         <div class="form-control">
@@ -27,12 +29,24 @@
             class="select select-bordered"
             :disabled="isConnected"
           >
-            <option value="">所有阶段</option>
-            <option value="rewrite">文案改写</option>
-            <option value="storyboard">分镜生成</option>
-            <option value="image_generation">文生图</option>
-            <option value="camera_movement">运镜生成</option>
-            <option value="video_generation">图生视频</option>
+            <option value="">
+              所有阶段
+            </option>
+            <option value="rewrite">
+              文案改写
+            </option>
+            <option value="storyboard">
+              分镜生成
+            </option>
+            <option value="image_generation">
+              文生图
+            </option>
+            <option value="camera_movement">
+              运镜生成
+            </option>
+            <option value="video_generation">
+              图生视频
+            </option>
           </select>
         </div>
 
@@ -44,7 +58,7 @@
               type="checkbox"
               class="checkbox"
               :disabled="isConnected"
-            />
+            >
           </label>
         </div>
 
@@ -75,7 +89,10 @@
     </div>
 
     <!-- 连接状态 -->
-    <div class="alert mb-4" :class="statusAlertClass">
+    <div
+      class="alert mb-4"
+      :class="statusAlertClass"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         class="stroke-current shrink-0 h-6 w-6"
@@ -93,7 +110,10 @@
     </div>
 
     <!-- 错误信息 -->
-    <div v-if="error" class="alert alert-error mb-4">
+    <div
+      v-if="error"
+      class="alert alert-error mb-4"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         class="stroke-current shrink-0 h-6 w-6"
@@ -115,7 +135,9 @@
       <div class="card-body">
         <h2 class="card-title">
           接收到的消息
-          <div class="badge badge-secondary">{{ messages.length }}</div>
+          <div class="badge badge-secondary">
+            {{ messages.length }}
+          </div>
         </h2>
 
         <div class="overflow-x-auto max-h-96 overflow-y-auto">
@@ -128,10 +150,18 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(msg, index) in messages" :key="index">
-                <td class="text-xs">{{ msg.timestamp }}</td>
+              <tr
+                v-for="(msg, index) in messages"
+                :key="index"
+              >
+                <td class="text-xs">
+                  {{ msg.timestamp }}
+                </td>
                 <td>
-                  <div class="badge" :class="getMessageTypeBadgeClass(msg.type)">
+                  <div
+                    class="badge"
+                    :class="getMessageTypeBadgeClass(msg.type)"
+                  >
                     {{ msg.type }}
                   </div>
                 </td>
@@ -142,7 +172,10 @@
             </tbody>
           </table>
 
-          <div v-if="messages.length === 0" class="text-center py-8 text-base-content/50">
+          <div
+            v-if="messages.length === 0"
+            class="text-center py-8 text-base-content/50"
+          >
             暂无消息
           </div>
         </div>
@@ -195,6 +228,10 @@ export default {
     statusAlertClass() {
       return this.isConnected ? 'alert-success' : 'alert-info';
     },
+  },
+  beforeDestroy() {
+    // 组件销毁时断开连接
+    this.disconnect();
   },
   methods: {
     /**
@@ -275,7 +312,7 @@ export default {
       });
 
       // 通用消息
-      this.sseClient.on(SSE_EVENT_TYPES.MESSAGE, (data) => {
+      this.sseClient.on(SSE_EVENT_TYPES.MESSAGE, () => {
         // 已经在特定事件中处理，这里不重复添加
       });
 
@@ -349,10 +386,6 @@ export default {
       };
       return classMap[type] || 'badge-ghost';
     },
-  },
-  beforeDestroy() {
-    // 组件销毁时断开连接
-    this.disconnect();
   },
 };
 </script>

@@ -9,8 +9,19 @@
             :class="{ 'btn-active': viewMode === 'cards' }"
             @click="viewMode = 'cards'"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"
+              />
             </svg>
             卡片视图
           </button>
@@ -19,8 +30,19 @@
             :class="{ 'btn-active': viewMode === 'markdown' }"
             @click="viewMode = 'markdown'"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             Markdown格式
           </button>
@@ -32,22 +54,42 @@
           class="btn btn-sm btn-primary gap-2"
           @click="addBlankCard"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
           </svg>
           新增空白卡片
         </button>
       </div>
 
       <!-- 统计信息 -->
-      <div v-if="scenes && scenes.length > 0" class="badge badge-primary badge-lg">
+      <div
+        v-if="scenes && scenes.length > 0"
+        class="badge badge-primary badge-lg"
+      >
         共 {{ scenes.length }} 个分镜
       </div>
     </div>
 
     <!-- 卡片视图 -->
-    <div v-if="viewMode === 'cards'" class="cards-container">
-      <div v-if="scenes && scenes.length > 0" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div
+      v-if="viewMode === 'cards'"
+      class="cards-container"
+    >
+      <div
+        v-if="scenes && scenes.length > 0"
+        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4"
+      >
         <div
           v-for="(scene, index) in scenes"
           :key="scene.scene_number"
@@ -62,36 +104,68 @@
               <div class="flex items-center gap-2">
                 <!-- 镜头类型 - 可编辑 -->
                 <select
-                  v-if="isSceneEditable(scene) && isEditing(scene.scene_number, 'shot_type')"
+                  v-if="isSceneEditable() && isEditing(scene.scene_number, 'shot_type')"
                   v-model="scene.shot_type"
                   class="select select-xs select-bordered"
                   @change="saveEdit(scene.scene_number, 'shot_type')"
                 >
-                  <option value="标准镜头">标准镜头</option>
-                  <option value="特写">特写</option>
-                  <option value="中景">中景</option>
-                  <option value="远景">远景</option>
-                  <option value="全景">全景</option>
-                  <option value="俯视">俯视</option>
-                  <option value="仰视">仰视</option>
+                  <option value="标准镜头">
+                    标准镜头
+                  </option>
+                  <option value="特写">
+                    特写
+                  </option>
+                  <option value="中景">
+                    中景
+                  </option>
+                  <option value="远景">
+                    远景
+                  </option>
+                  <option value="全景">
+                    全景
+                  </option>
+                  <option value="俯视">
+                    俯视
+                  </option>
+                  <option value="仰视">
+                    仰视
+                  </option>
                 </select>
                 <div
                   v-else
                   class="badge badge-outline cursor-pointer"
-                  :class="{ 'hover:badge-primary': isSceneEditable(scene) }"
-                  @click="isSceneEditable(scene) && toggleEditMode(scene.scene_number, 'shot_type')"
-                  :title="isSceneEditable(scene) ? '点击编辑镜头类型' : ''"
+                  :class="{ 'hover:badge-primary': isSceneEditable() }"
+                  :title="isSceneEditable() ? '点击编辑镜头类型' : ''"
+                  @click="isSceneEditable() && toggleEditMode(scene.scene_number, 'shot_type')"
                 >
                   {{ scene.shot_type || '标准镜头' }}
                 </div>
                 <!-- 在此位置插入卡片按钮 -->
                 <div class="dropdown dropdown-end">
-                  <label tabindex="0" class="btn btn-xs btn-ghost gap-1" title="插入卡片">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  <label
+                    tabindex="0"
+                    class="btn btn-xs btn-ghost gap-1"
+                    title="插入卡片"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                   </label>
-                  <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
+                  <ul
+                    tabindex="0"
+                    class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40"
+                  >
                     <li><a @click="insertBlankCard(index, 'before')">在此之前插入</a></li>
                     <li><a @click="insertBlankCard(index, 'after')">在此之后插入</a></li>
                   </ul>
@@ -100,11 +174,22 @@
                 <button
                   v-if="scenes.length > 1"
                   class="btn btn-xs btn-ghost btn-error gap-1"
-                  @click="removeCard(index)"
                   title="删除此卡片"
+                  @click="removeCard(index)"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3 w-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </button>
                 <!-- AI生成执行按钮 -->
@@ -112,11 +197,23 @@
                   class="btn btn-xs btn-primary gap-1"
                   :class="{ 'loading': executingScenes[scene.scene_number] }"
                   :disabled="executingScenes[scene.scene_number] || !projectId"
-                  @click="executeSceneGeneration(scene.scene_number)"
                   title="执行AI生成图片"
+                  @click="executeSceneGeneration(scene.scene_number)"
                 >
-                  <svg v-if="!executingScenes[scene.scene_number]" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <svg
+                    v-if="!executingScenes[scene.scene_number]"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3 w-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
                   </svg>
                   {{ executingScenes[scene.scene_number] ? '生成中...' : '执行' }}
                 </button>
@@ -125,50 +222,81 @@
 
             <!-- 图片列表 -->
             <div v-if="!scene.video_urls || scene.video_urls.length === 0">
-            <div v-if="scene.urls && scene.urls.length > 0" class="mb-3">
-              <div class="text-xs font-semibold text-base-content/60 mb-2 flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                生成图片 ({{ getSelectedImageIndex(scene.scene_number) + 1 }}/{{ scene.urls.length }})
-              </div>
-
-              <!-- 当前选中的图片预览 -->
-              <div class="relative rounded-lg overflow-hidden bg-base-200 mb-2">
-                <img
-                  :src="getSelectedImage(scene.scene_number)"
-                  :alt="`场景 ${scene.scene_number} - 图片 ${getSelectedImageIndex(scene.scene_number) + 1}`"
-                  class="w-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                  @click="openImageModal(scene.scene_number)"
-                />
-                <div class="absolute top-2 right-2 badge badge-sm bg-black/50 text-white border-0">
-                  {{ getSelectedImageIndex(scene.scene_number) + 1 }}/{{ scene.urls.length }}
+              <div
+                v-if="scene.urls && scene.urls.length > 0"
+                class="mb-3"
+              >
+                <div class="text-xs font-semibold text-base-content/60 mb-2 flex items-center gap-1">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  生成图片 ({{ getSelectedImageIndex(scene.scene_number) + 1 }}/{{ scene.urls.length }})
                 </div>
-              </div>
 
-              <!-- 图片缩略图选择器 -->
-              <div v-if="scene.urls.length > 1" class="flex gap-2 overflow-x-auto pb-2">
-                <div
-                  v-for="(url, index) in scene.urls"
-                  :key="index"
-                  class="flex-shrink-0 cursor-pointer rounded border-2 transition-all"
-                  :class="getSelectedImageIndex(scene.scene_number) === index ? 'border-primary ring-2 ring-primary/50' : 'border-base-300 hover:border-primary/50'"
-                  @click="selectImage(scene.scene_number, index)"
-                >
+                <!-- 当前选中的图片预览 -->
+                <div class="relative rounded-lg overflow-hidden bg-base-200 mb-2">
                   <img
-                    :src="url.url"
-                    :alt="`缩略图 ${index + 1}`"
-                    class="w-16 h-16 object-cover rounded"
-                  />
+                    :src="getSelectedImage(scene.scene_number)"
+                    :alt="`场景 ${scene.scene_number} - 图片 ${getSelectedImageIndex(scene.scene_number) + 1}`"
+                    class="w-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                    @click="openImageModal(scene.scene_number)"
+                  >
+                  <div class="absolute top-2 right-2 badge badge-sm bg-black/50 text-white border-0">
+                    {{ getSelectedImageIndex(scene.scene_number) + 1 }}/{{ scene.urls.length }}
+                  </div>
+                </div>
+
+                <!-- 图片缩略图选择器 -->
+                <div
+                  v-if="scene.urls.length > 1"
+                  class="flex gap-2 overflow-x-auto pb-2"
+                >
+                  <div
+                    v-for="(url, imageIndex) in scene.urls"
+                    :key="imageIndex"
+                    class="flex-shrink-0 cursor-pointer rounded border-2 transition-all"
+                    :class="getSelectedImageIndex(scene.scene_number) === imageIndex ? 'border-primary ring-2 ring-primary/50' : 'border-base-300 hover:border-primary/50'"
+                    @click="selectImage(scene.scene_number, imageIndex)"
+                  >
+                    <img
+                      :src="url.url"
+                      :alt="`缩略图 ${imageIndex + 1}`"
+                      class="w-16 h-16 object-cover rounded"
+                    >
+                  </div>
                 </div>
               </div>
-            </div>
             </div>
             <!-- 视频列表 -->
-            <div v-if="scene.video_urls && scene.video_urls.length > 0" class="mb-3">
+            <div
+              v-if="scene.video_urls && scene.video_urls.length > 0"
+              class="mb-3"
+            >
               <div class="text-xs font-semibold text-base-content/60 mb-2 flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
                 </svg>
                 生成视频 ({{ getSelectedVideoIndex(scene.scene_number) + 1 }}/{{ scene.video_urls.length }})
               </div>
@@ -189,22 +317,30 @@
               </div>
 
               <!-- 视频缩略图选择器 -->
-              <div v-if="scene.video_urls.length > 1" class="flex gap-2 overflow-x-auto pb-2">
+              <div
+                v-if="scene.video_urls.length > 1"
+                class="flex gap-2 overflow-x-auto pb-2"
+              >
                 <div
-                  v-for="(video, index) in scene.video_urls"
-                  :key="index"
+                  v-for="(video, videoIndex) in scene.video_urls"
+                  :key="videoIndex"
                   class="flex-shrink-0 cursor-pointer rounded border-2 transition-all relative"
-                  :class="getSelectedVideoIndex(scene.scene_number) === index ? 'border-primary ring-2 ring-primary/50' : 'border-base-300 hover:border-primary/50'"
-                  @click="selectVideo(scene.scene_number, index)"
+                  :class="getSelectedVideoIndex(scene.scene_number) === videoIndex ? 'border-primary ring-2 ring-primary/50' : 'border-base-300 hover:border-primary/50'"
+                  @click="selectVideo(scene.scene_number, videoIndex)"
                 >
                   <video
                     :src="video.url"
                     class="w-16 h-16 object-cover rounded"
                     preload="metadata"
-                  ></video>
+                  />
                   <!-- 播放图标叠加层 -->
                   <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-6 w-6 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   </div>
@@ -216,8 +352,19 @@
             <div class="mb-3">
               <div class="text-xs font-semibold text-base-content/60 mb-1 flex items-center justify-between">
                 <div class="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                    />
                   </svg>
                   旁白文本
                 </div>
@@ -225,8 +372,19 @@
                   class="btn btn-xs btn-ghost gap-1"
                   @click="toggleEditMode(scene.scene_number, 'narration')"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3 w-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
                   </svg>
                   {{ isEditing(scene.scene_number, 'narration') ? '完成' : '编辑' }}
                 </button>
@@ -237,16 +395,32 @@
                 class="textarea textarea-bordered w-full text-sm"
                 rows="3"
                 @blur="saveEdit(scene.scene_number, 'narration')"
-              ></textarea>
-              <p v-else class="text-sm leading-relaxed">{{ scene.narration }}</p>
+              />
+              <p
+                v-else
+                class="text-sm leading-relaxed"
+              >
+                {{ scene.narration }}
+              </p>
             </div>
 
             <!-- 视觉描述 -->
             <div class="mb-3">
               <div class="text-xs font-semibold text-base-content/60 mb-1 flex items-center justify-between">
                 <div class="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
                   </svg>
                   视觉提示词
                 </div>
@@ -255,14 +429,39 @@
                     class="btn btn-xs btn-ghost gap-1"
                     @click="toggleEditMode(scene.scene_number, 'visual_prompt')"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                      />
                     </svg>
                     {{ isEditing(scene.scene_number, 'visual_prompt') ? '完成' : '编辑' }}
                   </button>
-                  <button class="btn btn-xs btn-ghost gap-1" @click="copyPrompt(scene.visual_prompt)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <button
+                    class="btn btn-xs btn-ghost gap-1"
+                    @click="copyPrompt(scene.visual_prompt)"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
                     </svg>
                     复制
                   </button>
@@ -274,24 +473,43 @@
                 class="textarea textarea-bordered w-full text-sm"
                 rows="5"
                 @blur="saveEdit(scene.scene_number, 'visual_prompt')"
-              ></textarea>
-              <div v-else class="collapse collapse-arrow bg-base-200 rounded-lg">
-                <input type="checkbox" />
+              />
+              <div
+                v-else
+                class="collapse collapse-arrow bg-base-200 rounded-lg"
+              >
+                <input type="checkbox">
                 <div class="collapse-title text-xs font-medium">
                   点击展开完整描述
                 </div>
                 <div class="collapse-content text-xs">
-                  <p class="leading-relaxed whitespace-pre-wrap">{{ scene.visual_prompt }}</p>
+                  <p class="leading-relaxed whitespace-pre-wrap">
+                    {{ scene.visual_prompt }}
+                  </p>
                 </div>
               </div>
             </div>
 
             <!-- 运镜提示词 -->
-            <div v-if="scene.camera_movement || isSceneEditable(scene)" class="mb-3">
+            <div
+              v-if="scene.camera_movement || isSceneEditable(scene)"
+              class="mb-3"
+            >
               <div class="text-xs font-semibold text-base-content/60 mb-1 flex items-center justify-between">
                 <div class="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
                   </svg>
                   运镜提示词
                 </div>
@@ -300,14 +518,40 @@
                     class="btn btn-xs btn-ghost gap-1"
                     @click="toggleEditMode(scene.scene_number, 'camera_movement')"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                      />
                     </svg>
                     {{ isEditing(scene.scene_number, 'camera_movement') ? '完成' : '编辑' }}
                   </button>
-                  <button v-if="scene.camera_movement" class="btn btn-xs btn-ghost gap-1" @click="copyPrompt(scene.camera_movement)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <button
+                    v-if="scene.camera_movement"
+                    class="btn btn-xs btn-ghost gap-1"
+                    @click="copyPrompt(scene.camera_movement)"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
                     </svg>
                     复制
                   </button>
@@ -320,42 +564,84 @@
                 rows="4"
                 placeholder="请输入运镜描述..."
                 @blur="saveEdit(scene.scene_number, 'camera_movement')"
-              ></textarea>
-              <div v-else-if="scene.camera_movement" class="collapse collapse-arrow bg-base-200 rounded-lg">
-                <input type="checkbox" />
+              />
+              <div
+                v-else-if="scene.camera_movement"
+                class="collapse collapse-arrow bg-base-200 rounded-lg"
+              >
+                <input type="checkbox">
                 <div class="collapse-title text-xs font-medium">
                   点击展开完整描述
                 </div>
                 <div class="collapse-content text-xs">
-                  <p class="leading-relaxed whitespace-pre-wrap">{{ scene.camera_movement }}</p>
+                  <p class="leading-relaxed whitespace-pre-wrap">
+                    {{ scene.camera_movement }}
+                  </p>
                 </div>
               </div>
-              <p v-else class="text-xs text-base-content/40 italic">暂无运镜描述</p>
+              <p
+                v-else
+                class="text-xs text-base-content/40 italic"
+              >
+                暂无运镜描述
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- 空状态 -->
-      <div v-else class="text-center py-12">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-base-content/20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+      <div
+        v-else
+        class="text-center py-12"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-16 w-16 mx-auto text-base-content/20 mb-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
+          />
         </svg>
-        <p class="text-base-content/60">暂无分镜数据</p>
-        <p class="text-sm text-base-content/40 mt-2">请先生成分镜内容</p>
+        <p class="text-base-content/60">
+          暂无分镜数据
+        </p>
+        <p class="text-sm text-base-content/40 mt-2">
+          请先生成分镜内容
+        </p>
       </div>
     </div>
 
     <!-- Markdown视图 -->
-    <div v-else-if="viewMode === 'markdown'" class="markdown-container">
+    <div
+      v-else-if="viewMode === 'markdown'"
+      class="markdown-container"
+    >
       <div class="relative">
         <!-- 复制按钮 -->
         <button
           class="btn btn-sm absolute top-2 right-2 z-10"
           @click="copyMarkdown"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
           </svg>
           复制文本
         </button>
@@ -401,32 +687,6 @@ export default {
       localScenes: [], // 本地场景数据副本，用于支持新增空白卡片
       editingFields: {}, // 记录正在编辑的字段,格式: { 'scene_number_field': true }
     };
-  },
-  created() {
-  },
-  beforeDestroy() {
-    this.disconnectSSE();
-  },
-  watch: {
-    // 监听 data prop 的变化
-    data: {
-      deep: true,
-      handler(newData, oldData) {
-        console.log('[StoryboardViewer] data prop 更新:', {
-          newData,
-          oldData,
-          scenes: this.scenes
-        });
-        // 当外部数据更新时，清空本地修改（如果需要保留本地修改，可以注释掉这行）
-        // this.localScenes = [];
-      }
-    },
-    // 监听 projectId 变化，重新连接 WebSocket
-    projectId(newId, oldId) {
-      if (newId !== oldId) {
-        console.log('[StoryboardViewer] projectId 变化，重新连接 WebSocket');
-      }
-    }
   },
   computed: {
     // 解析场景数据
@@ -508,6 +768,32 @@ export default {
         return markdown;
       }).join('\n\n---\n\n');
     },
+  },
+  watch: {
+    // 监听 data prop 的变化
+    data: {
+      deep: true,
+      handler(newData, oldData) {
+        console.log('[StoryboardViewer] data prop 更新:', {
+          newData,
+          oldData,
+          scenes: this.scenes
+        });
+        // 当外部数据更新时，清空本地修改（如果需要保留本地修改，可以注释掉这行）
+        // this.localScenes = [];
+      }
+    },
+    // 监听 projectId 变化，重新连接 WebSocket
+    projectId(newId, oldId) {
+      if (newId !== oldId) {
+        console.log('[StoryboardViewer] projectId 变化，重新连接 WebSocket');
+      }
+    }
+  },
+  created() {
+  },
+  beforeDestroy() {
+    this.disconnectSSE();
   },
   methods: {
     // 新增空白卡片（添加到末尾）
@@ -633,7 +919,7 @@ export default {
     },
 
     // 判断场景是否可编辑（所有场景都可编辑）
-    isSceneEditable(scene) {
+    isSceneEditable() {
       // 所有场景都可以编辑
       return true;
     },
@@ -806,7 +1092,7 @@ export default {
         };
         this.connectSSE();
         // 调用API执行图片生成阶段
-        const response = await projectApi.executeStage(
+        await projectApi.executeStage(
           this.projectId,
           this.stageType,
           inputData

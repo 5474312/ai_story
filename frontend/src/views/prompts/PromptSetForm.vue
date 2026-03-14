@@ -3,26 +3,37 @@
     <PageCard :title="isEdit ? '编辑提示词集' : '创建提示词集'">
       <template #header-right>
         <div class="flex gap-2">
-          <button class="btn btn-ghost btn-sm" @click="handleCancel">
+          <button
+            class="btn btn-ghost btn-sm"
+            @click="handleCancel"
+          >
             取消
           </button>
           <button
             class="btn btn-primary btn-sm"
-            @click="handleSubmit"
             :disabled="submitting || !isFormValid"
+            @click="handleSubmit"
           >
-            <span v-if="submitting" class="loading loading-spinner loading-sm"></span>
+            <span
+              v-if="submitting"
+              class="loading loading-spinner loading-sm"
+            />
             {{ isEdit ? '保存' : '创建' }}
           </button>
         </div>
       </template>
 
       <LoadingContainer :loading="loading">
-        <form @submit.prevent="handleSubmit" class="space-y-6">
+        <form
+          class="space-y-6"
+          @submit.prevent="handleSubmit"
+        >
           <!-- 基本信息 -->
           <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
-              <h3 class="card-title text-base mb-4">基本信息</h3>
+              <h3 class="card-title text-base mb-4">
+                基本信息
+              </h3>
 
               <!-- 名称 -->
               <div class="form-control">
@@ -38,8 +49,11 @@
                   class="input input-bordered"
                   :class="{ 'input-error': errors.name }"
                   required
-                />
-                <label v-if="errors.name" class="label">
+                >
+                <label
+                  v-if="errors.name"
+                  class="label"
+                >
                   <span class="label-text-alt text-error">{{ errors.name }}</span>
                 </label>
               </div>
@@ -54,8 +68,11 @@
                   placeholder="请输入提示词集描述"
                   class="textarea textarea-bordered h-24"
                   :class="{ 'textarea-error': errors.description }"
-                ></textarea>
-                <label v-if="errors.description" class="label">
+                />
+                <label
+                  v-if="errors.description"
+                  class="label"
+                >
                   <span class="label-text-alt text-error">{{ errors.description }}</span>
                 </label>
               </div>
@@ -67,19 +84,22 @@
                     v-model="formData.is_active"
                     type="checkbox"
                     class="checkbox checkbox-primary"
-                  />
+                  >
                   <span class="label-text">启用此提示词集</span>
                 </label>
               </div>
 
               <!-- 默认选项 (仅管理员) -->
-              <div v-if="isAdmin" class="form-control">
+              <div
+                v-if="isAdmin"
+                class="form-control"
+              >
                 <label class="label cursor-pointer justify-start gap-4">
                   <input
                     v-model="formData.is_default"
                     type="checkbox"
                     class="checkbox checkbox-primary"
-                  />
+                  >
                   <span class="label-text">设为默认提示词集</span>
                 </label>
                 <label class="label">
@@ -92,7 +112,10 @@
           </div>
 
           <!-- 错误提示 -->
-          <div v-if="formError" class="alert alert-error">
+          <div
+            v-if="formError"
+            class="alert alert-error"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="stroke-current shrink-0 h-6 w-6"
@@ -110,7 +133,10 @@
           </div>
 
           <!-- 成功提示 -->
-          <div v-if="formSuccess" class="alert alert-success">
+          <div
+            v-if="formSuccess"
+            class="alert alert-success"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="stroke-current shrink-0 h-6 w-6"

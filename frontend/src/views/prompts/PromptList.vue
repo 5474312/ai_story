@@ -2,18 +2,35 @@
   <div class="page-shell prompt-list">
     <div class="page-header">
       <div class="page-header-main">
-        <h1 class="page-title">提示词管理</h1>
-        <p class="page-subtitle">{{ total }} 个提示词集</p>
+        <h1 class="page-title">
+          提示词管理
+        </h1>
+        <p class="page-subtitle">
+          {{ total }} 个提示词集
+        </p>
       </div>
-      <button class="primary-action" @click="handleCreate">
+      <button
+        class="primary-action"
+        @click="handleCreate"
+      >
         <span>创建提示词集</span>
       </button>
     </div>
 
     <div class="filter-card">
       <div class="search-box">
-        <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <svg
+          class="search-icon"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
         <input
           v-model="searchKeyword"
@@ -21,7 +38,7 @@
           placeholder="搜索提示词集..."
           class="search-input"
           @input="handleSearch"
-        />
+        >
       </div>
       <div class="status-filters">
         <button
@@ -46,13 +63,28 @@
     </div>
 
     <LoadingContainer :loading="loading">
-      <div v-if="!loading && promptSets.length === 0" class="empty-state">
-        <div class="empty-hero">暂无提示词集</div>
-        <p class="empty-hint">创建第一个提示词集，快速复用你的最佳实践</p>
-        <button class="secondary-action" @click="handleCreate">创建提示词集</button>
+      <div
+        v-if="!loading && promptSets.length === 0"
+        class="empty-state"
+      >
+        <div class="empty-hero">
+          暂无提示词集
+        </div>
+        <p class="empty-hint">
+          创建第一个提示词集，快速复用你的最佳实践
+        </p>
+        <button
+          class="secondary-action"
+          @click="handleCreate"
+        >
+          创建提示词集
+        </button>
       </div>
 
-      <div v-else class="card-grid">
+      <div
+        v-else
+        class="card-grid"
+      >
         <article
           v-for="set in promptSets"
           :key="set.id"
@@ -66,9 +98,14 @@
             <div>
               <h2 class="card-title">
                 {{ set.name }}
-                <span v-if="set.is_default" class="pill pill-primary">默认</span>
+                <span
+                  v-if="set.is_default"
+                  class="pill pill-primary"
+                >默认</span>
               </h2>
-              <p class="card-desc">{{ set.description || '暂无描述' }}</p>
+              <p class="card-desc">
+                {{ set.description || '暂无描述' }}
+              </p>
             </div>
             <StatusBadge :status="set.is_active ? 'active' : 'inactive'" />
           </div>
@@ -86,18 +123,29 @@
 
           <div class="card-footer">
             <span class="meta-time">更新于 {{ formatDate(set.updated_at) }}</span>
-            <div class="card-actions" @click.stop>
+            <div
+              class="card-actions"
+              @click.stop
+            >
               <div class="dropdown dropdown-end">
-                <label tabindex="0" class="ghost-action" @click.stop>更多</label>
+                <label
+                  tabindex="0"
+                  class="ghost-action"
+                  @click.stop
+                >更多</label>
                 <ul
                   tabindex="0"
                   class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300"
                 >
-                  <li v-if="!set.is_default"><a @click="handleSetDefault(set)">设为默认</a></li>
+                  <li v-if="!set.is_default">
+                    <a @click="handleSetDefault(set)">设为默认</a>
+                  </li>
                   <li><a @click="handleClone(set)">克隆</a></li>
                   <li><a @click="handleEdit(set)">编辑描述</a></li>
                   <li><a @click="handleToggleActive(set)">{{ set.is_active ? '停用' : '启用' }}</a></li>
-                  <li class="text-error"><a @click="handleDelete(set)">删除</a></li>
+                  <li class="text-error">
+                    <a @click="handleDelete(set)">删除</a>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -105,7 +153,10 @@
         </article>
       </div>
 
-      <div v-if="total > pageSize" class="pagination">
+      <div
+        v-if="total > pageSize"
+        class="pagination"
+      >
         <button
           class="pagination-btn"
           :disabled="currentPage === 1"
@@ -125,26 +176,45 @@
     </LoadingContainer>
 
     <!-- 克隆对话框 -->
-    <dialog ref="cloneDialog" class="modal">
+    <dialog
+      ref="cloneDialog"
+      class="modal"
+    >
       <div class="modal-box">
-        <h3 class="font-bold text-lg">克隆提示词集</h3>
-        <p class="py-4">请为新的提示词集输入名称：</p>
+        <h3 class="font-bold text-lg">
+          克隆提示词集
+        </h3>
+        <p class="py-4">
+          请为新的提示词集输入名称：
+        </p>
         <div class="form-control">
           <input
             v-model="cloneName"
             type="text"
             placeholder="新提示词集名称"
             class="input input-bordered w-full"
-          />
+          >
         </div>
         <div class="modal-action">
-          <button class="btn" @click="$refs.cloneDialog.close()">取消</button>
-          <button class="btn btn-primary" @click="confirmClone" :disabled="!cloneName">
+          <button
+            class="btn"
+            @click="$refs.cloneDialog.close()"
+          >
+            取消
+          </button>
+          <button
+            class="btn btn-primary"
+            :disabled="!cloneName"
+            @click="confirmClone"
+          >
             确认克隆
           </button>
         </div>
       </div>
-      <form method="dialog" class="modal-backdrop">
+      <form
+        method="dialog"
+        class="modal-backdrop"
+      >
         <button>关闭</button>
       </form>
     </dialog>

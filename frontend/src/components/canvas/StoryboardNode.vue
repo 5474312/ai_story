@@ -7,8 +7,19 @@
   >
     <div class="node-header">
       <div class="header-left">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
+          />
         </svg>
         <span class="node-title">分镜 {{ index + 1 }}</span>
       </div>
@@ -19,8 +30,19 @@
           title="保存修改"
           @click="handleSave"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
           </svg>
         </button>
       </div>
@@ -61,14 +83,17 @@
           @keydown.esc.prevent="closeAutocomplete('imagePrompt')"
           @wheel.stop
           @mousedown.stop
-        ></textarea>
-        <div v-if="showImagePromptAutocomplete && filteredImagePromptAssets.length" class="asset-autocomplete prevent-canvas-wheel">
+        />
+        <div
+          v-if="showImagePromptAutocomplete && filteredImagePromptAssets.length"
+          class="asset-autocomplete prevent-canvas-wheel"
+        >
           <button
-            v-for="(asset, index) in filteredImagePromptAssets"
+            v-for="(asset, assetIndex) in filteredImagePromptAssets"
             :key="`img-${asset.id}`"
             type="button"
             class="asset-autocomplete-item"
-            :class="{ active: highlightedImagePromptIndex === index }"
+            :class="{ active: highlightedImagePromptIndex === assetIndex }"
             @mousedown.prevent="selectAutocomplete('imagePrompt', asset.key)"
           >
             <code>{{ asset.key }}</code>
@@ -98,14 +123,17 @@
           @keydown.esc.prevent="closeAutocomplete('narration')"
           @wheel.stop
           @mousedown.stop
-        ></textarea>
-        <div v-if="showNarrationAutocomplete && filteredNarrationAssets.length" class="asset-autocomplete prevent-canvas-wheel">
+        />
+        <div
+          v-if="showNarrationAutocomplete && filteredNarrationAssets.length"
+          class="asset-autocomplete prevent-canvas-wheel"
+        >
           <button
-            v-for="(asset, index) in filteredNarrationAssets"
+            v-for="(asset, assetIndex) in filteredNarrationAssets"
             :key="`nar-${asset.id}`"
             type="button"
             class="asset-autocomplete-item"
-            :class="{ active: highlightedNarrationIndex === index }"
+            :class="{ active: highlightedNarrationIndex === assetIndex }"
             @mousedown.prevent="selectAutocomplete('narration', asset.key)"
           >
             <code>{{ asset.key }}</code>
@@ -156,35 +184,6 @@ export default {
       highlightedNarrationIndex: 0,
     };
   },
-  watch: {
-    'storyboard.scene_description': {
-      immediate: true,
-      handler(newVal) {
-        if (!this.isEditingScene) {
-          this.sceneDescription = newVal || '';
-          this.lastSavedScene = this.sceneDescription;
-        }
-      }
-    },
-    'storyboard.image_prompt': {
-      immediate: true,
-      handler(newVal) {
-        if (!this.isEditingImagePrompt) {
-          this.imagePrompt = newVal || '';
-          this.lastSavedImagePrompt = this.imagePrompt;
-        }
-      }
-    },
-    'storyboard.narration_text': {
-      immediate: true,
-      handler(newVal) {
-        if (!this.isEditingNarration) {
-          this.narrationText = newVal || '';
-          this.lastSavedNarration = this.narrationText;
-        }
-      }
-    }
-  },
   computed: {
     nodeStyle() {
       return {
@@ -222,6 +221,35 @@ export default {
         const group = (asset.group || '').toLowerCase();
         return key.includes(keyword) || group.includes(keyword);
       });
+    }
+  },
+  watch: {
+    'storyboard.scene_description': {
+      immediate: true,
+      handler(newVal) {
+        if (!this.isEditingScene) {
+          this.sceneDescription = newVal || '';
+          this.lastSavedScene = this.sceneDescription;
+        }
+      }
+    },
+    'storyboard.image_prompt': {
+      immediate: true,
+      handler(newVal) {
+        if (!this.isEditingImagePrompt) {
+          this.imagePrompt = newVal || '';
+          this.lastSavedImagePrompt = this.imagePrompt;
+        }
+      }
+    },
+    'storyboard.narration_text': {
+      immediate: true,
+      handler(newVal) {
+        if (!this.isEditingNarration) {
+          this.narrationText = newVal || '';
+          this.lastSavedNarration = this.narrationText;
+        }
+      }
     }
   },
   methods: {

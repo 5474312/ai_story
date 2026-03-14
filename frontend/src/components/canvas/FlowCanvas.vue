@@ -1,21 +1,69 @@
 <template>
-  <div class="flow-canvas-wrapper" ref="wrapper">
+  <div
+    ref="wrapper"
+    class="flow-canvas-wrapper"
+  >
     <!-- 画布控制工具栏 -->
     <div class="canvas-controls">
       <div class="btn-group">
-        <button class="btn btn-sm btn-ghost" @click="zoomIn" title="放大">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+        <button
+          class="btn btn-sm btn-ghost"
+          title="放大"
+          @click="zoomIn"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"
+            />
           </svg>
         </button>
-        <button class="btn btn-sm btn-ghost" @click="zoomOut" title="缩小">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM7 10h6" />
+        <button
+          class="btn btn-sm btn-ghost"
+          title="缩小"
+          @click="zoomOut"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM7 10h6"
+            />
           </svg>
         </button>
-        <button class="btn btn-sm btn-ghost" @click="resetView" title="适应画布">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+        <button
+          class="btn btn-sm btn-ghost"
+          title="适应画布"
+          @click="resetView"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+            />
           </svg>
         </button>
       </div>
@@ -39,7 +87,7 @@
         :style="canvasStyle"
       >
         <!-- 节点内容插槽 -->
-        <slot :scale="scale"></slot>
+        <slot :scale="scale" />
       </div>
     </div>
   </div>
@@ -77,13 +125,6 @@ export default {
       };
     }
   },
-  mounted() {
-    // 初始化视图：自动适配所有节点
-    this.$nextTick(() => {
-      this.fitAllNodes();
-      this.lastFitSignature = this.getLayoutSignature();
-    });
-  },
   watch: {
     // 监听节点变化，自动适配
     nodes: {
@@ -99,6 +140,13 @@ export default {
         });
       }
     }
+  },
+  mounted() {
+    // 初始化视图：自动适配所有节点
+    this.$nextTick(() => {
+      this.fitAllNodes();
+      this.lastFitSignature = this.getLayoutSignature();
+    });
   },
   methods: {
     // 缩放控制

@@ -2,28 +2,60 @@
   <div class="page-shell project-series-detail">
     <div class="page-header">
       <div class="page-header-main">
-        <button class="back-link" @click="$router.push({ name: 'SeriesList' })">← 返回作品列表</button>
-        <h1 class="page-title">{{ currentSeries?.name || '作品详情' }}</h1>
-        <p class="page-subtitle">{{ currentSeries?.description || '管理作品下的全部分集' }}</p>
+        <button
+          class="back-link"
+          @click="$router.push({ name: 'SeriesList' })"
+        >
+          ← 返回作品列表
+        </button>
+        <h1 class="page-title">
+          {{ currentSeries?.name || '作品详情' }}
+        </h1>
+        <p class="page-subtitle">
+          {{ currentSeries?.description || '管理作品下的全部分集' }}
+        </p>
       </div>
       <div class="header-actions">
-        <button class="primary-action" @click="goCreateEpisode">
+        <button
+          class="primary-action"
+          @click="goCreateEpisode"
+        >
           <span>创建分集</span>
         </button>
       </div>
     </div>
 
     <LoadingContainer :loading="loading">
-      <div v-if="!loading && episodes.length === 0" class="empty-state">
-        <div class="empty-hero">这个作品还没有分集</div>
-        <p class="empty-hint">先创建第一集，再进入分集详情继续生成文案、分镜和视频。</p>
+      <div
+        v-if="!loading && episodes.length === 0"
+        class="empty-state"
+      >
+        <div class="empty-hero">
+          这个作品还没有分集
+        </div>
+        <p class="empty-hint">
+          先创建第一集，再进入分集详情继续生成文案、分镜和视频。
+        </p>
         <div class="empty-actions">
-          <button class="secondary-action" @click="goBatchCreateEpisode">批量创建</button>
-          <button class="secondary-action" @click="goCreateEpisode">创建第一集</button>
+          <button
+            class="secondary-action"
+            @click="goBatchCreateEpisode"
+          >
+            批量创建
+          </button>
+          <button
+            class="secondary-action"
+            @click="goCreateEpisode"
+          >
+            创建第一集
+          </button>
         </div>
       </div>
 
-      <div v-else class="card-grid">
+      <div
+        v-else
+        class="card-grid"
+      >
         <article
           v-for="episode in episodes"
           :key="episode.id"
@@ -39,11 +71,19 @@
                 {{ episode.display_name || episode.name }}
                 <span class="pill">第{{ episode.episode_number || '-' }}集</span>
               </h2>
-              <p class="card-desc">{{ episode.description || '暂无分集描述' }}</p>
+              <p class="card-desc">
+                {{ episode.description || '暂无分集描述' }}
+              </p>
             </div>
             <div class="card-status-group">
-              <span class="status-pill" :class="statusClass(episode)">{{ displayStatus(episode) }}</span>
-              <span v-if="episode.queue_position && episode.queue_status === 'waiting'" class="queue-pill">队列第 {{ episode.queue_position }} 位</span>
+              <span
+                class="status-pill"
+                :class="statusClass(episode)"
+              >{{ displayStatus(episode) }}</span>
+              <span
+                v-if="episode.queue_position && episode.queue_status === 'waiting'"
+                class="queue-pill"
+              >队列第 {{ episode.queue_position }} 位</span>
             </div>
           </div>
 
@@ -77,7 +117,12 @@
               >
                 {{ operatingEpisodeId === episode.id && operatingAction === 'release' ? '释放中...' : '释放队列' }}
               </button>
-              <button class="project-card-action" @click.stop="goEditEpisode(episode.id)">编辑</button>
+              <button
+                class="project-card-action"
+                @click.stop="goEditEpisode(episode.id)"
+              >
+                编辑
+              </button>
               <button
                 class="project-card-action project-card-action--danger"
                 :disabled="deletingEpisodeId === episode.id"

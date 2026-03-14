@@ -1,5 +1,9 @@
 <template>
-  <div id="app" :data-theme="theme" class="app-shell">
+  <div
+    id="app"
+    :data-theme="theme"
+    class="app-shell"
+  >
     <router-view />
     <ConfirmDialog />
   </div>

@@ -4,8 +4,12 @@
       <div class="card-body">
         <!-- Logo和标题 -->
         <div class="text-center mb-6">
-          <h1 class="text-3xl font-bold text-primary">AI Story</h1>
-          <p class="text-base-content/70 mt-2">创建新账户</p>
+          <h1 class="text-3xl font-bold text-primary">
+            AI Story
+          </h1>
+          <p class="text-base-content/70 mt-2">
+            创建新账户
+          </p>
         </div>
 
         <!-- 注册表单 -->
@@ -22,8 +26,11 @@
               class="input input-bordered"
               :class="{ 'input-error': errors.username }"
               required
-            />
-            <label v-if="errors.username" class="label">
+            >
+            <label
+              v-if="errors.username"
+              class="label"
+            >
               <span class="label-text-alt text-error">{{ errors.username }}</span>
             </label>
           </div>
@@ -40,8 +47,11 @@
               class="input input-bordered"
               :class="{ 'input-error': errors.email }"
               required
-            />
-            <label v-if="errors.email" class="label">
+            >
+            <label
+              v-if="errors.email"
+              class="label"
+            >
               <span class="label-text-alt text-error">{{ errors.email }}</span>
             </label>
           </div>
@@ -58,8 +68,11 @@
               class="input input-bordered"
               :class="{ 'input-error': errors.password }"
               required
-            />
-            <label v-if="errors.password" class="label">
+            >
+            <label
+              v-if="errors.password"
+              class="label"
+            >
               <span class="label-text-alt text-error">{{ errors.password }}</span>
             </label>
           </div>
@@ -76,14 +89,20 @@
               class="input input-bordered"
               :class="{ 'input-error': errors.password_confirm }"
               required
-            />
-            <label v-if="errors.password_confirm" class="label">
+            >
+            <label
+              v-if="errors.password_confirm"
+              class="label"
+            >
               <span class="label-text-alt text-error">{{ errors.password_confirm }}</span>
             </label>
           </div>
 
           <!-- 错误提示 -->
-          <div v-if="errorMessage" class="alert alert-error mb-4">
+          <div
+            v-if="errorMessage"
+            class="alert alert-error mb-4"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="stroke-current shrink-0 h-6 w-6"
@@ -112,11 +131,16 @@
         </form>
 
         <!-- 底部链接 -->
-        <div class="divider">或</div>
+        <div class="divider">
+          或
+        </div>
         <div class="text-center">
           <p class="text-sm text-base-content/70">
             已有账户？
-            <router-link to="/login" class="link link-primary">
+            <router-link
+              to="/login"
+              class="link link-primary"
+            >
               立即登录
             </router-link>
           </p>

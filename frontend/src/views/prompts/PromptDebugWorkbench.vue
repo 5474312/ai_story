@@ -2,109 +2,216 @@
   <div class="page-shell prompt-debug-workbench">
     <div class="page-header">
       <div class="page-header-main">
-        <h1 class="page-title">提示词调试工作台</h1>
-        <p class="page-subtitle">围绕模板进行调试、联动与保存</p>
+        <h1 class="page-title">
+          提示词调试工作台
+        </h1>
+        <p class="page-subtitle">
+          围绕模板进行调试、联动与保存
+        </p>
       </div>
       <div class="page-actions">
-        <button class="secondary-action" @click="goBack">返回模板</button>
-        <button class="secondary-action" @click="handleSaveTemplate" :disabled="debugLoading">保存到当前模板</button>
-        <button class="primary-action" @click="handleSaveAsVersion" :disabled="debugLoading">另存为新版本</button>
+        <button
+          class="secondary-action"
+          @click="goBack"
+        >
+          返回模板
+        </button>
+        <button
+          class="secondary-action"
+          :disabled="debugLoading"
+          @click="handleSaveTemplate"
+        >
+          保存到当前模板
+        </button>
+        <button
+          class="primary-action"
+          :disabled="debugLoading"
+          @click="handleSaveAsVersion"
+        >
+          另存为新版本
+        </button>
       </div>
     </div>
 
     <LoadingContainer :loading="loadingPage">
-      <div v-if="session" class="workbench-grid">
+      <div
+        v-if="session"
+        class="workbench-grid"
+      >
         <section class="workbench-card editor-card">
           <div class="card-top">
             <div>
-              <h2 class="card-title">模板草稿</h2>
-              <p class="card-desc">当前阶段：{{ stageLabel(session.stage_type) }}</p>
+              <h2 class="card-title">
+                模板草稿
+              </h2>
+              <p class="card-desc">
+                当前阶段：{{ stageLabel(session.stage_type) }}
+              </p>
             </div>
             <span class="pill pill-primary">{{ session.prompt_template_detail?.stage_type_display }}</span>
           </div>
 
           <div class="field-group">
             <label class="field-label">模型</label>
-            <select v-model="form.model_provider_id" class="field-select">
-              <option value="">使用默认模型</option>
-              <option v-for="item in availableProviders" :key="item.id" :value="item.id">{{ item.name }}</option>
+            <select
+              v-model="form.model_provider_id"
+              class="field-select"
+            >
+              <option value="">
+                使用默认模型
+              </option>
+              <option
+                v-for="item in availableProviders"
+                :key="item.id"
+                :value="item.id"
+              >
+                {{ item.name }}
+              </option>
             </select>
           </div>
 
           <div class="field-group">
             <label class="field-label">模板内容</label>
-            <textarea v-model="form.template_content" class="field-textarea textarea-lg" rows="14" />
+            <textarea
+              v-model="form.template_content"
+              class="field-textarea textarea-lg"
+              rows="14"
+            />
           </div>
           <div class="field-group">
             <label class="field-label">阶段输入</label>
-            <textarea v-model="inputPayloadText" class="field-textarea" rows="8" :placeholder="inputPlaceholder" />
+            <textarea
+              v-model="inputPayloadText"
+              class="field-textarea"
+              rows="8"
+              :placeholder="inputPlaceholder"
+            />
           </div>
 
           <div class="field-group">
             <label class="field-label">变量值 JSON</label>
-            <textarea v-model="variableValuesText" class="field-textarea" rows="8" placeholder='{"topic":"赛博都市"}' />
+            <textarea
+              v-model="variableValuesText"
+              class="field-textarea"
+              rows="8"
+              placeholder="{&quot;topic&quot;:&quot;赛博都市&quot;}"
+            />
           </div>
 
-          <div v-if="canSelectSource" class="field-group">
+          <div
+            v-if="canSelectSource"
+            class="field-group"
+          >
             <label class="field-label">上游调试资产</label>
-            <select v-model="form.source_artifact_id" class="field-select">
-              <option value="">不使用上游资产</option>
-              <option v-for="item in sourceArtifacts" :key="item.id" :value="item.id">
+            <select
+              v-model="form.source_artifact_id"
+              class="field-select"
+            >
+              <option value="">
+                不使用上游资产
+              </option>
+              <option
+                v-for="item in sourceArtifacts"
+                :key="item.id"
+                :value="item.id"
+              >
                 {{ item.name }} · {{ artifactTypeLabel(item.artifact_type) }}
               </option>
             </select>
           </div>
 
           <div class="editor-actions">
-            <button class="primary-action" @click="handleRun" :disabled="debugLoading">运行调试</button>
+            <button
+              class="primary-action"
+              :disabled="debugLoading"
+              @click="handleRun"
+            >
+              运行调试
+            </button>
           </div>
         </section>
 
         <section class="workbench-card result-card">
           <div class="card-top">
             <div>
-              <h2 class="card-title">本次结果</h2>
-              <p class="card-desc">运行后自动保存结果与联动资产</p>
+              <h2 class="card-title">
+                本次结果
+              </h2>
+              <p class="card-desc">
+                运行后自动保存结果与联动资产
+              </p>
             </div>
-            <span v-if="debugLoading && isLlmStage" class="streaming-pill">流式生成中</span>
+            <span
+              v-if="debugLoading && isLlmStage"
+              class="streaming-pill"
+            >流式生成中</span>
           </div>
 
-          <div v-if="displayRun" class="result-blocks">
+          <div
+            v-if="displayRun"
+            class="result-blocks"
+          >
             <div class="result-block">
               <h3>渲染后 Prompt</h3>
               <pre>{{ displayRun.rendered_prompt }}</pre>
             </div>
-            <div class="result-block" v-if="isLlmStage">
+            <div
+              v-if="isLlmStage"
+              class="result-block"
+            >
               <h3>流式输出</h3>
               <pre>{{ displayRun.streamed_text || displayRun.raw_response?.text || '' }}</pre>
             </div>
-            <div class="result-block" v-if="displayRun.parsed_output">
+            <div
+              v-if="displayRun.parsed_output"
+              class="result-block"
+            >
               <h3>结构化输出</h3>
               <pre>{{ formatJson(displayRun.parsed_output) }}</pre>
             </div>
-            <div class="result-block" v-if="displayRun.raw_response && !isLlmStage">
+            <div
+              v-if="displayRun.raw_response && !isLlmStage"
+              class="result-block"
+            >
               <h3>原始响应</h3>
               <pre>{{ formatJson(displayRun.raw_response) }}</pre>
             </div>
-            <div class="result-block" v-if="displayRun.error_message">
+            <div
+              v-if="displayRun.error_message"
+              class="result-block"
+            >
               <h3>错误信息</h3>
               <pre>{{ displayRun.error_message }}</pre>
             </div>
           </div>
-          <div v-else class="empty-state compact-empty">
-            <div class="empty-hero">还没有调试结果</div>
-            <p class="empty-hint">先运行一次调试，结果会沉淀为可复用资产</p>
+          <div
+            v-else
+            class="empty-state compact-empty"
+          >
+            <div class="empty-hero">
+              还没有调试结果
+            </div>
+            <p class="empty-hint">
+              先运行一次调试，结果会沉淀为可复用资产
+            </p>
           </div>
         </section>
 
         <section class="workbench-card history-card">
           <div class="card-top">
             <div>
-              <h2 class="card-title">运行历史</h2>
-              <p class="card-desc">最近 5 次运行</p>
+              <h2 class="card-title">
+                运行历史
+              </h2>
+              <p class="card-desc">
+                最近 5 次运行
+              </p>
             </div>
           </div>
-          <div v-if="debugRuns.length" class="history-list">
+          <div
+            v-if="debugRuns.length"
+            class="history-list"
+          >
             <article
               v-for="run in debugRuns"
               :key="run.id"
@@ -126,42 +233,80 @@
               </div>
               <div class="card-footer">
                 <span class="meta-time">{{ formatDate(run.created_at) }}</span>
-                <button class="ghost-action" type="button" @click.stop="selectRun(run)">查看</button>
+                <button
+                  class="ghost-action"
+                  type="button"
+                  @click.stop="selectRun(run)"
+                >
+                  查看
+                </button>
               </div>
             </article>
           </div>
-          <div v-else class="empty-state compact-empty">
-            <p class="empty-hint">暂无运行历史</p>
+          <div
+            v-else
+            class="empty-state compact-empty"
+          >
+            <p class="empty-hint">
+              暂无运行历史
+            </p>
           </div>
         </section>
 
         <section class="workbench-card asset-card">
           <div class="card-top">
             <div>
-              <h2 class="card-title">联动资产</h2>
-              <p class="card-desc">分镜、图片、视频都可以继续给下游阶段使用</p>
+              <h2 class="card-title">
+                联动资产
+              </h2>
+              <p class="card-desc">
+                分镜、图片、视频都可以继续给下游阶段使用
+              </p>
             </div>
           </div>
-          <div v-if="sessionArtifacts.length" class="asset-list">
-            <article v-for="item in sessionArtifacts" :key="item.id" class="asset-item">
+          <div
+            v-if="sessionArtifacts.length"
+            class="asset-list"
+          >
+            <article
+              v-for="item in sessionArtifacts"
+              :key="item.id"
+              class="asset-item"
+            >
               <div class="card-meta">
                 <div class="meta-item">
                   <span class="meta-label">类型</span>
                   <span class="meta-value">{{ artifactTypeLabel(item.artifact_type) }}</span>
                 </div>
-                <div class="meta-item" v-if="item.sequence_number">
+                <div
+                  v-if="item.sequence_number"
+                  class="meta-item"
+                >
                   <span class="meta-label">序号</span>
                   <span class="meta-value">{{ item.sequence_number }}</span>
                 </div>
               </div>
-              <div class="asset-preview" v-if="item.preview_image_url">
-                <img :src="item.preview_image_url" :alt="item.name">
+              <div
+                v-if="item.preview_image_url"
+                class="asset-preview"
+              >
+                <img
+                  :src="item.preview_image_url"
+                  :alt="item.name"
+                >
               </div>
-              <div class="asset-preview-text">{{ item.preview_text || item.name }}</div>
+              <div class="asset-preview-text">
+                {{ item.preview_text || item.name }}
+              </div>
             </article>
           </div>
-          <div v-else class="empty-state compact-empty">
-            <p class="empty-hint">暂无联动资产</p>
+          <div
+            v-else
+            class="empty-state compact-empty"
+          >
+            <p class="empty-hint">
+              暂无联动资产
+            </p>
           </div>
         </section>
       </div>
@@ -243,6 +388,14 @@ export default {
         return '{"image_url":"https://...","duration":5,"fps":24}'
       }
       return '请输入用户提示词文本'
+    },
+  },
+  watch: {
+    '$route.params.id': {
+      immediate: false,
+      async handler() {
+        await this.bootstrap()
+      },
     },
   },
   async created() {
@@ -482,14 +635,6 @@ export default {
         console.error('另存版本失败:', error)
         this.$message?.error(error.response?.data?.error || '另存版本失败')
       }
-    },
-  },
-  watch: {
-    '$route.params.id': {
-      immediate: false,
-      async handler() {
-        await this.bootstrap()
-      },
     },
   },
 }

@@ -2,16 +2,33 @@
   <div class="asset-form">
     <PageCard :title="isEdit ? '编辑资产' : '新建资产'">
       <template slot="header-right">
-        <button class="btn btn-ghost btn-sm" @click="goBack">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        <button
+          class="btn btn-ghost btn-sm"
+          @click="goBack"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
           </svg>
           返回列表
         </button>
       </template>
 
       <LoadingContainer :loading="pageLoading">
-        <form @submit.prevent="handleSubmit" class="max-w-2xl">
+        <form
+          class="max-w-2xl"
+          @submit.prevent="handleSubmit"
+        >
           <!-- 资产键 -->
           <div class="form-control mb-4">
             <label class="label">
@@ -25,11 +42,17 @@
               :class="{ 'input-error': errors.key }"
               :disabled="isEdit"
               @blur="validateKey"
-            />
-            <label v-if="errors.key" class="label">
+            >
+            <label
+              v-if="errors.key"
+              class="label"
+            >
               <span class="label-text-alt text-error">{{ errors.key }}</span>
             </label>
-            <label v-else class="label">
+            <label
+              v-else
+              class="label"
+            >
               <span class="label-text-alt">只能包含字母、数字、下划线，且必须以字母或下划线开头</span>
             </label>
           </div>
@@ -44,27 +67,43 @@
               class="select select-bordered"
               @change="handleTypeChange"
             >
-              <option value="string">字符串</option>
-              <option value="number">数字</option>
-              <option value="boolean">布尔值</option>
-              <option value="json">JSON对象</option>
-              <option value="image">图片</option>
+              <option value="string">
+                字符串
+              </option>
+              <option value="number">
+                数字
+              </option>
+              <option value="boolean">
+                布尔值
+              </option>
+              <option value="json">
+                JSON对象
+              </option>
+              <option value="image">
+                图片
+              </option>
             </select>
           </div>
 
           <!-- 图片上传（仅图片类型显示） -->
-          <div v-if="form.variable_type === 'image'" class="form-control mb-4">
+          <div
+            v-if="form.variable_type === 'image'"
+            class="form-control mb-4"
+          >
             <label class="label">
               <span class="label-text">图片文件 <span class="text-error">*</span></span>
             </label>
 
             <!-- 图片预览 -->
-            <div v-if="imagePreview || form.image_url" class="mb-4">
+            <div
+              v-if="imagePreview || form.image_url"
+              class="mb-4"
+            >
               <img
                 :src="imagePreview || form.image_url"
                 alt="预览"
                 class="max-w-xs max-h-48 object-contain rounded border border-base-300"
-              />
+              >
             </div>
 
             <!-- 上传按钮 -->
@@ -75,7 +114,7 @@
                 accept="image/*"
                 class="file-input file-input-bordered w-full max-w-xs"
                 @change="handleFileChange"
-              />
+              >
               <button
                 v-if="imagePreview || selectedFile"
                 type="button"
@@ -85,7 +124,10 @@
                 清除
               </button>
             </div>
-            <label v-if="errors.image" class="label">
+            <label
+              v-if="errors.image"
+              class="label"
+            >
               <span class="label-text-alt text-error">{{ errors.image }}</span>
             </label>
             <label class="label">
@@ -94,17 +136,20 @@
           </div>
 
           <!-- 资产值（非图片类型显示） -->
-          <div v-else class="form-control mb-4">
+          <div
+            v-else
+            class="form-control mb-4"
+          >
             <label class="label">
               <span class="label-text">资产值 <span class="text-error">*</span></span>
             </label>
             <textarea
               v-if="form.variable_type === 'json'"
               v-model="form.value"
-              placeholder='例如: {"name": "test"}'
+              placeholder="例如: {&quot;name&quot;: &quot;test&quot;}"
               class="textarea textarea-bordered h-32"
               :class="{ 'textarea-error': errors.value }"
-            ></textarea>
+            />
             <input
               v-else
               v-model="form.value"
@@ -112,8 +157,11 @@
               :placeholder="getValuePlaceholder()"
               class="input input-bordered"
               :class="{ 'input-error': errors.value }"
-            />
-            <label v-if="errors.value" class="label">
+            >
+            <label
+              v-if="errors.value"
+              class="label"
+            >
               <span class="label-text-alt text-error">{{ errors.value }}</span>
             </label>
           </div>
@@ -128,8 +176,15 @@
               class="select select-bordered"
               :disabled="!isAdmin && form.scope === 'system'"
             >
-              <option value="user">用户级（仅自己可见）</option>
-              <option value="system" :disabled="!isAdmin">系统级（所有用户可见，需管理员权限）</option>
+              <option value="user">
+                用户级（仅自己可见）
+              </option>
+              <option
+                value="system"
+                :disabled="!isAdmin"
+              >
+                系统级（所有用户可见，需管理员权限）
+              </option>
             </select>
           </div>
 
@@ -146,14 +201,20 @@
                 placeholder="输入新分组名称"
                 class="input input-bordered flex-1"
                 @keyup.enter="addNewGroup"
-              />
+              >
               <select
                 v-else
                 v-model="form.group"
                 class="select select-bordered flex-1"
               >
-                <option value="">无分组</option>
-                <option v-for="group in groups" :key="group" :value="group">
+                <option value="">
+                  无分组
+                </option>
+                <option
+                  v-for="group in groups"
+                  :key="group"
+                  :value="group"
+                >
                   {{ group }}
                 </option>
               </select>
@@ -176,7 +237,7 @@
               v-model="form.description"
               placeholder="资产的用途说明..."
               class="textarea textarea-bordered h-20"
-            ></textarea>
+            />
           </div>
 
           <!-- 是否激活 -->
@@ -186,7 +247,7 @@
                 v-model="form.is_active"
                 type="checkbox"
                 class="checkbox checkbox-primary"
-              />
+              >
               <span class="label-text">激活此资产</span>
             </label>
           </div>
@@ -196,8 +257,8 @@
             <button
               type="button"
               class="btn btn-ghost"
-              @click="goBack"
               :disabled="submitting"
+              @click="goBack"
             >
               取消
             </button>
@@ -206,7 +267,10 @@
               class="btn btn-primary"
               :disabled="submitting || !isFormValid"
             >
-              <span v-if="submitting" class="loading loading-spinner loading-sm"></span>
+              <span
+                v-if="submitting"
+                class="loading loading-spinner loading-sm"
+              />
               {{ submitting ? '保存中...' : '保存' }}
             </button>
           </div>

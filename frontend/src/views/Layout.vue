@@ -4,7 +4,11 @@
     :class="{ 'rail-collapsed': sidebarCollapsed, 'theme-dark': isDark }"
   >
     <!-- 移动端抽屉切换 -->
-    <input id="main-drawer" type="checkbox" class="drawer-toggle" />
+    <input
+      id="main-drawer"
+      type="checkbox"
+      class="drawer-toggle"
+    >
 
     <!-- 主内容区 -->
     <div class="drawer-content flex flex-col">
@@ -13,7 +17,11 @@
         <div class="topbar-left">
           <!-- 移动端菜单按钮 -->
           <div class="flex-none lg:hidden">
-            <label for="main-drawer" class="icon-button" aria-label="打开导航">
+            <label
+              for="main-drawer"
+              class="icon-button"
+              aria-label="打开导航"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -25,18 +33,25 @@
                   stroke-linejoin="round"
                   stroke-width="2"
                   d="M4 6h16M4 12h16M4 18h16"
-                ></path>
+                />
               </svg>
             </label>
           </div>
 
-          <div class="brand-chip">AI Story</div>
+          <div class="brand-chip">
+            AI Story
+          </div>
 
           <!-- 面包屑导航 -->
           <div class="text-sm breadcrumbs">
             <ul>
-              <li v-for="(item, index) in breadcrumbs" :key="index">
-                <router-link :to="item.path">{{ item.label }}</router-link>
+              <li
+                v-for="(item, index) in breadcrumbs"
+                :key="index"
+              >
+                <router-link :to="item.path">
+                  {{ item.label }}
+                </router-link>
               </li>
             </ul>
           </div>
@@ -46,9 +61,9 @@
         <div class="topbar-actions">
           <button
             class="icon-button"
-            @click="handleThemeToggle"
             :aria-label="isDark ? '切换到浅色主题' : '切换到深色主题'"
             :title="isDark ? '切换到浅色主题' : '切换到深色主题'"
+            @click="handleThemeToggle"
           >
             <svg
               v-if="isDark"
@@ -81,7 +96,11 @@
               />
             </svg>
           </button>
-          <button class="icon-button" @click="handleRefresh" aria-label="刷新">
+          <button
+            class="icon-button"
+            aria-label="刷新"
+            @click="handleRefresh"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -100,7 +119,11 @@
 
           <!-- 用户菜单 -->
           <div class="dropdown dropdown-end">
-            <label tabindex="0" class="icon-button avatar placeholder" aria-label="用户菜单">
+            <label
+              tabindex="0"
+              class="icon-button avatar placeholder"
+              aria-label="用户菜单"
+            >
               <div class="avatar-orb">
                 <span class="text-lg">{{ userInitial }}</span>
               </div>
@@ -148,42 +171,61 @@
 
     <!-- 移动端侧边栏 -->
     <div class="drawer-side z-40 lg:hidden">
-      <label for="main-drawer" class="drawer-overlay"></label>
+      <label
+        for="main-drawer"
+        class="drawer-overlay"
+      />
       <aside class="mobile-drawer">
-        <div class="mobile-header">AI Story</div>
+        <div class="mobile-header">
+          AI Story
+        </div>
         <ul class="menu p-3">
           <li>
             <router-link
               to="/series"
               :class="{ 'active': activeMenu === '/series' || activeMenu.startsWith('/series/') }"
-            >作品管理</router-link>
+            >
+              作品管理
+            </router-link>
           </li>
           <li>
             <router-link
               to="/prompts"
               :class="{ 'active': activeMenu === '/prompts' }"
-            >提示词管理</router-link>
+            >
+              提示词管理
+            </router-link>
           </li>
           <li>
             <router-link
               to="/assets"
               :class="{ 'active': activeMenu === '/assets' || activeMenu.startsWith('/assets/') }"
-            >资产管理</router-link>
+            >
+              资产管理
+            </router-link>
           </li>
           <li>
             <router-link
               to="/models"
               :class="{ 'active': activeMenu === '/models' }"
-            >模型管理</router-link>
+            >
+              模型管理
+            </router-link>
           </li>
         </ul>
       </aside>
     </div>
 
-    <div class="rail-hover-zone hidden lg:block" aria-hidden="true"></div>
+    <div
+      class="rail-hover-zone hidden lg:block"
+      aria-hidden="true"
+    />
 
     <!-- 浮动侧边导航栏（桌面端） -->
-    <nav class="floating-rail hidden lg:flex" :class="{ 'is-collapsed': sidebarCollapsed }">
+    <nav
+      class="floating-rail hidden lg:flex"
+      :class="{ 'is-collapsed': sidebarCollapsed }"
+    >
       <div class="rail-orb">
         <span>AI</span>
       </div>
@@ -299,9 +341,9 @@
       </ul>
       <button
         class="rail-toggle"
-        @click="toggleSidebar"
         :aria-label="sidebarCollapsed ? '展开导航栏' : '折叠导航栏'"
         :title="sidebarCollapsed ? '展开导航栏' : '折叠导航栏'"
+        @click="toggleSidebar"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

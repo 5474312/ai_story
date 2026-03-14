@@ -1,9 +1,15 @@
 <template>
-  <div v-if="loading" class="loading-container">
-    <span class="loading loading-spinner loading-lg text-primary"></span>
+  <div
+    v-if="loading"
+    class="loading-container"
+  >
+    <span class="loading loading-spinner loading-lg text-primary" />
   </div>
-  <div v-else class="loading-slot">
-    <slot></slot>
+  <div
+    v-else
+    class="loading-slot"
+  >
+    <slot />
   </div>
 </template>
 

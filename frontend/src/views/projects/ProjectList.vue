@@ -2,18 +2,35 @@
   <div class="page-shell project-episode-list">
     <div class="page-header">
       <div class="page-header-main">
-        <h1 class="page-title">分集列表</h1>
-        <p class="page-subtitle">{{ pagination.total }} 个分集</p>
+        <h1 class="page-title">
+          分集列表
+        </h1>
+        <p class="page-subtitle">
+          {{ pagination.total }} 个分集
+        </p>
       </div>
-      <button class="primary-action" @click="goSeriesList">
+      <button
+        class="primary-action"
+        @click="goSeriesList"
+      >
         <span>返回作品管理</span>
       </button>
     </div>
 
     <div class="filter-card">
       <div class="search-box">
-        <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <svg
+          class="search-icon"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
         <input
           v-model="filters.search"
@@ -37,13 +54,28 @@
     </div>
 
     <LoadingContainer :loading="loading">
-      <div v-if="!loading && projects.length === 0" class="empty-state">
-        <div class="empty-hero">暂无分集</div>
-        <p class="empty-hint">请先在作品管理里创建作品，然后在作品下创建分集。</p>
-        <button class="secondary-action" @click="goSeriesList">去作品管理</button>
+      <div
+        v-if="!loading && projects.length === 0"
+        class="empty-state"
+      >
+        <div class="empty-hero">
+          暂无分集
+        </div>
+        <p class="empty-hint">
+          请先在作品管理里创建作品，然后在作品下创建分集。
+        </p>
+        <button
+          class="secondary-action"
+          @click="goSeriesList"
+        >
+          去作品管理
+        </button>
       </div>
 
-      <div v-else class="card-grid">
+      <div
+        v-else
+        class="card-grid"
+      >
         <article
           v-for="project in projects"
           :key="project.id"
@@ -59,7 +91,9 @@
                 {{ project.display_name || project.name }}
                 <span class="pill">第{{ project.episode_number || '-' }}集</span>
               </h2>
-              <p class="card-desc">{{ project.series_name || '未归属作品' }}</p>
+              <p class="card-desc">
+                {{ project.series_name || '未归属作品' }}
+              </p>
             </div>
             <span class="status-pill">{{ project.status_display }}</span>
           </div>
@@ -78,7 +112,12 @@
           <div class="card-footer">
             <span class="meta-time">更新于 {{ formatDate(project.updated_at) }}</span>
             <div class="project-card-actions">
-              <button class="project-card-action" @click.stop="handleEdit(project.id)">编辑</button>
+              <button
+                class="project-card-action"
+                @click.stop="handleEdit(project.id)"
+              >
+                编辑
+              </button>
               <button
                 class="project-card-action project-card-action--danger"
                 :disabled="deletingProjectId === project.id"

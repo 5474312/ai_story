@@ -1,28 +1,101 @@
 <template>
   <div class="stage-content">
     <!-- 阶段状态信息 -->
-    <div v-if="stage" class="alert mb-4" :class="getAlertClass(stage.status)">
-      <svg v-if="stage.status === 'running'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6 animate-spin">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    <div
+      v-if="stage"
+      class="alert mb-4"
+      :class="getAlertClass(stage.status)"
+    >
+      <svg
+        v-if="stage.status === 'running'"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        class="stroke-current shrink-0 w-6 h-6 animate-spin"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+        />
       </svg>
-      <svg v-else-if="stage.status === 'completed'" xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg
+        v-else-if="stage.status === 'completed'"
+        xmlns="http://www.w3.org/2000/svg"
+        class="stroke-current shrink-0 h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
-      <svg v-else-if="stage.status === 'failed'" xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg
+        v-else-if="stage.status === 'failed'"
+        xmlns="http://www.w3.org/2000/svg"
+        class="stroke-current shrink-0 h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
-      <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg
+        v-else
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        class="stroke-current shrink-0 w-6 h-6"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
       <div>
-        <div class="font-bold">{{ stage.status_display }}</div>
-        <div v-if="stage.error_message" class="text-xs">{{ stage.error_message }}</div>
-        <div v-else-if="stage.updated_at" class="text-xs">{{ formatDate(stage.updated_at) }}</div>
+        <div class="font-bold">
+          {{ stage.status_display }}
+        </div>
+        <div
+          v-if="stage.error_message"
+          class="text-xs"
+        >
+          {{ stage.error_message }}
+        </div>
+        <div
+          v-else-if="stage.updated_at"
+          class="text-xs"
+        >
+          {{ formatDate(stage.updated_at) }}
+        </div>
       </div>
     </div>
-    <div v-else class="alert alert-info mb-4">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <div
+      v-else
+      class="alert alert-info mb-4"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        class="stroke-current shrink-0 w-6 h-6"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
       <span>此阶段尚未创建</span>
     </div>
@@ -34,8 +107,19 @@
         :disabled="isRunning"
         @click="handleReset"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
         </svg>
         重置
       </button>
@@ -44,8 +128,19 @@
         :disabled="isRunning"
         @click="handleSave"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+          />
         </svg>
         保存数据
       </button>
@@ -54,19 +149,51 @@
         :disabled="isRunning || !canExecute"
         @click="handleExecute"
       >
-        <svg v-if="isRunning" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <svg
+          v-if="isRunning"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 animate-spin"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
         </svg>
-        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg
+          v-else
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+          />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
         {{ isRunning ? '执行中...' : 'AI生成' }}
       </button>
     </div>
 
     <!-- 输入/输出编辑区域 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" v-if="['rewrite','storyboard', 'camera_movement', 'image_generation', 'video_generation'].indexOf(stageType) !==-1">
+    <div
+      v-if="['rewrite','storyboard', 'camera_movement', 'image_generation', 'video_generation'].indexOf(stageType) !==-1"
+      class="grid grid-cols-1 lg:grid-cols-2 gap-4"
+    >
       <!-- 输入数据 -->
       <div class="form-control">
         <label class="label">
@@ -78,7 +205,7 @@
           class="textarea textarea-bordered h-80 font-mono text-sm"
           :placeholder="getInputPlaceholder()"
           :disabled="isRunning"
-        ></textarea>
+        />
         <label class="label">
           <span class="label-text-alt text-xs text-base-content/60">{{ getInputDescription() }}</span>
         </label>
@@ -94,28 +221,53 @@
         </label>
         <div class="relative">
           <textarea
+            ref="outputTextarea"
             v-model="localOutputData"
             class="textarea textarea-bordered h-80 font-mono text-sm w-full"
             :class="{ 'textarea-info': isStreaming }"
             :placeholder="getOutputPlaceholder()"
             :disabled="isRunning"
-            ref="outputTextarea"
-          ></textarea>
+          />
           <!-- 流式生成动画指示器 -->
-          <div v-if="isStreaming" class="absolute top-2 right-2 flex items-center gap-2 bg-info text-info-content px-3 py-1 rounded-lg shadow-lg">
-            <span class="loading loading-dots loading-sm"></span>
+          <div
+            v-if="isStreaming"
+            class="absolute top-2 right-2 flex items-center gap-2 bg-info text-info-content px-3 py-1 rounded-lg shadow-lg"
+          >
+            <span class="loading loading-dots loading-sm" />
             <span class="text-xs font-medium">实时生成中</span>
           </div>
         </div>
         <!-- 进度条 -->
-        <div v-if="isStreaming && streamProgress > 0" class="mt-2">
-          <progress class="progress progress-info w-full" :value="streamProgress" max="100"></progress>
-          <div class="text-xs text-center text-base-content/60 mt-1">{{ streamProgress }}%</div>
+        <div
+          v-if="isStreaming && streamProgress > 0"
+          class="mt-2"
+        >
+          <progress
+            class="progress progress-info w-full"
+            :value="streamProgress"
+            max="100"
+          />
+          <div class="text-xs text-center text-base-content/60 mt-1">
+            {{ streamProgress }}%
+          </div>
         </div>
         <!-- 错误提示 -->
-        <div v-if="streamError" class="alert alert-error mt-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div
+          v-if="streamError"
+          class="alert alert-error mt-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <span>{{ streamError }}</span>
         </div>
@@ -126,8 +278,13 @@
     </div>
 
     <!-- 领域数据展示区域 -->
-    <div v-if="stage && stage.domain_data" class="mt-6">
-      <div class="divider">领域数据</div>
+    <div
+      v-if="stage && stage.domain_data"
+      class="mt-6"
+    >
+      <div class="divider">
+        领域数据
+      </div>
       <DomainDataViewer
         :stage-type="stageType"
         :domain-data="stage.domain_data"
@@ -135,8 +292,13 @@
     </div>
 
     <!-- 分镜可视化展示区域 -->
-    <div v-if="['storyboard', 'image_generation','camera_movement', 'video_generation'].indexOf(stageType) !==-1 && localOutputData" class="mt-6">
-      <div class="divider">分镜可视化</div>
+    <div
+      v-if="['storyboard', 'image_generation','camera_movement', 'video_generation'].indexOf(stageType) !==-1 && localOutputData"
+      class="mt-6"
+    >
+      <div class="divider">
+        分镜可视化
+      </div>
       <StoryboardViewer
         :stage-type="stageType"
         :data="humanTextOutput"

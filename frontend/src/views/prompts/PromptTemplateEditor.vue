@@ -3,33 +3,55 @@
     <PageCard :title="isEdit ? '编辑提示词模板' : '创建提示词模板'">
       <template #header-right>
         <div class="flex gap-2">
-          <button class="btn btn-ghost btn-sm" @click="handleCancel">
+          <button
+            class="btn btn-ghost btn-sm"
+            @click="handleCancel"
+          >
             取消
           </button>
-          <button class="btn btn-ghost btn-sm" @click="handleValidate" :disabled="validating">
-            <span v-if="validating" class="loading loading-spinner loading-sm"></span>
+          <button
+            class="btn btn-ghost btn-sm"
+            :disabled="validating"
+            @click="handleValidate"
+          >
+            <span
+              v-if="validating"
+              class="loading loading-spinner loading-sm"
+            />
             验证语法
           </button>
-          <button class="btn btn-ghost btn-sm" @click="handlePreview" :disabled="!canPreview">
+          <button
+            class="btn btn-ghost btn-sm"
+            :disabled="!canPreview"
+            @click="handlePreview"
+          >
             预览
           </button>
           <button
             class="btn btn-primary btn-sm"
-            @click="handleSubmit"
             :disabled="submitting || !isFormValid"
+            @click="handleSubmit"
           >
-            <span v-if="submitting" class="loading loading-spinner loading-sm"></span>
+            <span
+              v-if="submitting"
+              class="loading loading-spinner loading-sm"
+            />
             {{ isEdit ? '保存' : '创建' }}
           </button>
         </div>
       </template>
 
       <LoadingContainer :loading="loading">
-        <form @submit.prevent="handleSubmit" class="space-y-6">
+        <form
+          class="space-y-6"
+          @submit.prevent="handleSubmit"
+        >
           <!-- 基本信息 -->
           <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
-              <h3 class="card-title text-base mb-4">基本信息</h3>
+              <h3 class="card-title text-base mb-4">
+                基本信息
+              </h3>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- 提示词集 -->
@@ -46,7 +68,9 @@
                     :disabled="isEdit"
                     required
                   >
-                    <option value="">请选择提示词集</option>
+                    <option value="">
+                      请选择提示词集
+                    </option>
                     <option
                       v-for="set in promptSets"
                       :key="set.id"
@@ -55,7 +79,10 @@
                       {{ set.name }}
                     </option>
                   </select>
-                  <label v-if="errors.template_set" class="label">
+                  <label
+                    v-if="errors.template_set"
+                    class="label"
+                  >
                     <span class="label-text-alt text-error">{{ errors.template_set }}</span>
                   </label>
                 </div>
@@ -75,7 +102,9 @@
                     required
                     @change="handleStageTypeChange"
                   >
-                    <option value="">请选择阶段</option>
+                    <option value="">
+                      请选择阶段
+                    </option>
                     <option
                       v-for="stage in stageTypes"
                       :key="stage.value"
@@ -84,7 +113,10 @@
                       {{ stage.label }}
                     </option>
                   </select>
-                  <label v-if="errors.stage_type" class="label">
+                  <label
+                    v-if="errors.stage_type"
+                    class="label"
+                  >
                     <span class="label-text-alt text-error">{{ errors.stage_type }}</span>
                   </label>
                 </div>
@@ -104,7 +136,9 @@
                   :class="{ 'select-error': errors.model_provider }"
                   :disabled="!formData.stage_type || loadingModels"
                 >
-                  <option value="">无(使用项目配置)</option>
+                  <option value="">
+                    无(使用项目配置)
+                  </option>
                   <option
                     v-for="model in availableModels"
                     :key="model.id"
@@ -118,7 +152,10 @@
                     {{ getModelTypeHint() }}
                   </span>
                 </label>
-                <label v-if="errors.model_provider" class="label">
+                <label
+                  v-if="errors.model_provider"
+                  class="label"
+                >
                   <span class="label-text-alt text-error">{{ errors.model_provider }}</span>
                 </label>
               </div>
@@ -130,7 +167,7 @@
                     v-model="formData.is_active"
                     type="checkbox"
                     class="checkbox checkbox-primary"
-                  />
+                  >
                   <span class="label-text">启用此模板</span>
                 </label>
               </div>
@@ -141,7 +178,9 @@
           <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
               <div class="flex items-center justify-between mb-4">
-                <h3 class="card-title text-base">模板内容</h3>
+                <h3 class="card-title text-base">
+                  模板内容
+                </h3>
                 <div class="text-xs text-base-content/60">
                   支持 Jinja2 语法,使引用变量
                 </div>
@@ -154,8 +193,11 @@
                   class="textarea textarea-bordered font-mono text-sm h-64"
                   :class="{ 'textarea-error': errors.template_content }"
                   required
-                ></textarea>
-                <label v-if="errors.template_content" class="label">
+                />
+                <label
+                  v-if="errors.template_content"
+                  class="label"
+                >
                   <span class="label-text-alt text-error">{{ errors.template_content }}</span>
                 </label>
                 <label class="label">
@@ -171,7 +213,9 @@
           <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
               <div class="flex items-center justify-between mb-4">
-                <h3 class="card-title text-base">变量定义</h3>
+                <h3 class="card-title text-base">
+                  变量定义
+                </h3>
                 <button
                   type="button"
                   class="btn btn-sm btn-ghost"
@@ -194,7 +238,10 @@
               </div>
 
               <!-- 变量列表 -->
-              <div v-if="variableList.length > 0" class="space-y-3">
+              <div
+                v-if="variableList.length > 0"
+                class="space-y-3"
+              >
                 <div
                   v-for="(variable, index) in variableList"
                   :key="index"
@@ -206,10 +253,13 @@
                       type="text"
                       placeholder="变量名"
                       class="input input-bordered input-sm"
-                    />
+                    >
                   </div>
                   <div class="md:col-span-5 form-control">
-                    <select v-model="variable.type" class="select select-bordered select-sm">
+                    <select
+                      v-model="variable.type"
+                      class="select select-bordered select-sm"
+                    >
                       <option
                         v-for="type in variableTypes"
                         :key="type.value"
@@ -232,18 +282,28 @@
               </div>
 
               <!-- 空状态 -->
-              <div v-else class="text-center py-8 text-base-content/60 text-sm">
+              <div
+                v-else
+                class="text-center py-8 text-base-content/60 text-sm"
+              >
                 暂无变量定义,点击"添加变量"按钮创建
               </div>
 
-              <label v-if="errors.variables" class="label">
+              <label
+                v-if="errors.variables"
+                class="label"
+              >
                 <span class="label-text-alt text-error">{{ errors.variables }}</span>
               </label>
             </div>
           </div>
 
           <!-- 验证结果 -->
-          <div v-if="validationResult" class="alert" :class="validationResult.valid ? 'alert-success' : 'alert-error'">
+          <div
+            v-if="validationResult"
+            class="alert"
+            :class="validationResult.valid ? 'alert-success' : 'alert-error'"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="stroke-current shrink-0 h-6 w-6"
@@ -269,7 +329,10 @@
           </div>
 
           <!-- 错误提示 -->
-          <div v-if="formError" class="alert alert-error">
+          <div
+            v-if="formError"
+            class="alert alert-error"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="stroke-current shrink-0 h-6 w-6"
@@ -287,7 +350,10 @@
           </div>
 
           <!-- 成功提示 -->
-          <div v-if="formSuccess" class="alert alert-success">
+          <div
+            v-if="formSuccess"
+            class="alert alert-success"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="stroke-current shrink-0 h-6 w-6"
@@ -308,13 +374,23 @@
     </PageCard>
 
     <!-- 预览对话框 -->
-    <dialog ref="previewDialog" class="modal">
+    <dialog
+      ref="previewDialog"
+      class="modal"
+    >
       <div class="modal-box max-w-3xl">
-        <h3 class="font-bold text-lg mb-4">模板预览</h3>
+        <h3 class="font-bold text-lg mb-4">
+          模板预览
+        </h3>
 
         <!-- 变量输入 -->
-        <div v-if="variableList.length > 0" class="space-y-3 mb-6">
-          <h4 class="text-sm font-semibold text-base-content/60">输入变量值</h4>
+        <div
+          v-if="variableList.length > 0"
+          class="space-y-3 mb-6"
+        >
+          <h4 class="text-sm font-semibold text-base-content/60">
+            输入变量值
+          </h4>
           <div
             v-for="variable in variableList"
             :key="variable.name"
@@ -328,36 +404,55 @@
               type="text"
               :placeholder="`请输入 ${variable.name}`"
               class="input input-bordered input-sm"
-            />
+            >
           </div>
         </div>
 
         <!-- 预览结果 -->
-        <div v-if="previewResult" class="mb-4">
-          <h4 class="text-sm font-semibold text-base-content/60 mb-2">渲染结果</h4>
+        <div
+          v-if="previewResult"
+          class="mb-4"
+        >
+          <h4 class="text-sm font-semibold text-base-content/60 mb-2">
+            渲染结果
+          </h4>
           <div class="p-4 bg-base-200 rounded-lg">
             <pre class="text-sm whitespace-pre-wrap">{{ previewResult.rendered_content }}</pre>
           </div>
         </div>
 
         <!-- 预览错误 -->
-        <div v-if="previewError" class="alert alert-error mb-4">
+        <div
+          v-if="previewError"
+          class="alert alert-error mb-4"
+        >
           <span>{{ previewError }}</span>
         </div>
 
         <div class="modal-action">
-          <button class="btn" @click="$refs.previewDialog.close()">关闭</button>
+          <button
+            class="btn"
+            @click="$refs.previewDialog.close()"
+          >
+            关闭
+          </button>
           <button
             class="btn btn-primary"
-            @click="executePreview"
             :disabled="previewing"
+            @click="executePreview"
           >
-            <span v-if="previewing" class="loading loading-spinner loading-sm"></span>
+            <span
+              v-if="previewing"
+              class="loading loading-spinner loading-sm"
+            />
             渲染预览
           </button>
         </div>
       </div>
-      <form method="dialog" class="modal-backdrop">
+      <form
+        method="dialog"
+        class="modal-backdrop"
+      >
         <button>关闭</button>
       </form>
     </dialog>
@@ -443,6 +538,21 @@ export default {
       return this.formData.template_content.trim().length > 0;
     },
   },
+  watch: {
+    // 监听变量列表变化,同步到formData
+    variableList: {
+      handler(newList) {
+        const variables = {};
+        newList.forEach((variable) => {
+          if (variable.name) {
+            variables[variable.name] = variable.type;
+          }
+        });
+        this.formData.variables = variables;
+      },
+      deep: true,
+    },
+  },
   async created() {
     // 加载提示词集列表
     await this.fetchPromptSets();
@@ -461,21 +571,6 @@ export default {
     if (this.isEdit) {
       await this.loadTemplate();
     }
-  },
-  watch: {
-    // 监听变量列表变化,同步到formData
-    variableList: {
-      handler(newList) {
-        const variables = {};
-        newList.forEach((variable) => {
-          if (variable.name) {
-            variables[variable.name] = variable.type;
-          }
-        });
-        this.formData.variables = variables;
-      },
-      deep: true,
-    },
   },
   methods: {
     ...mapActions('prompts', [

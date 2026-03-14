@@ -2,17 +2,29 @@
   <div class="prompt-set-detail">
     <LoadingContainer :loading="loading">
       <!-- 头部信息 -->
-      <PageCard v-if="promptSet" :title="promptSet.name">
+      <PageCard
+        v-if="promptSet"
+        :title="promptSet.name"
+      >
         <template #header-right>
           <div class="flex gap-2">
-            <button class="btn btn-ghost btn-sm" @click="handleBack">
+            <button
+              class="btn btn-ghost btn-sm"
+              @click="handleBack"
+            >
               返回列表
             </button>
-            <button class="btn btn-primary btn-sm" @click="handleEdit">
+            <button
+              class="btn btn-primary btn-sm"
+              @click="handleEdit"
+            >
               编辑
             </button>
             <div class="dropdown dropdown-end">
-              <label tabindex="0" class="btn btn-ghost btn-sm">
+              <label
+                tabindex="0"
+                class="btn btn-ghost btn-sm"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-5 w-5"
@@ -46,15 +58,21 @@
           <!-- 描述 -->
           <div class="lg:col-span-2 card bg-base-100 border border-base-300">
             <div class="card-body">
-              <h3 class="text-sm font-semibold text-base-content/60 mb-2">描述</h3>
-              <p class="text-base-content">{{ promptSet.description || '暂无描述' }}</p>
+              <h3 class="text-sm font-semibold text-base-content/60 mb-2">
+                描述
+              </h3>
+              <p class="text-base-content">
+                {{ promptSet.description || '暂无描述' }}
+              </p>
             </div>
           </div>
 
           <!-- 状态信息 -->
           <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
-              <h3 class="text-sm font-semibold text-base-content/60 mb-4">状态信息</h3>
+              <h3 class="text-sm font-semibold text-base-content/60 mb-4">
+                状态信息
+              </h3>
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-base-content/60">状态</span>
@@ -62,7 +80,10 @@
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-base-content/60">默认</span>
-                  <div class="badge badge-sm" :class="promptSet.is_default ? 'badge-primary' : 'badge-ghost'">
+                  <div
+                    class="badge badge-sm"
+                    :class="promptSet.is_default ? 'badge-primary' : 'badge-ghost'"
+                  >
                     {{ promptSet.is_default ? '是' : '否' }}
                   </div>
                 </div>
@@ -83,7 +104,9 @@
         <div class="card bg-base-100 border border-base-300">
           <div class="card-body">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="card-title text-base">提示词模板</h3>
+              <h3 class="card-title text-base">
+                提示词模板
+              </h3>
               <button
                 class="btn btn-primary btn-sm"
                 :disabled="!availableStageTypes.length"
@@ -106,7 +129,10 @@
             </div>
 
             <!-- 模板列表 -->
-            <div v-if="templates.length > 0" class="space-y-3">
+            <div
+              v-if="templates.length > 0"
+              class="space-y-3"
+            >
               <div
                 v-for="template in templates"
                 :key="template.id"
@@ -116,9 +142,16 @@
                   <div class="flex items-start justify-between">
                     <div class="flex-1">
                       <div class="flex items-center gap-2 mb-2">
-                        <h4 class="font-semibold">{{ template.stage_type_display }}</h4>
-                        <div class="badge badge-sm">v{{ template.version }}</div>
-                        <StatusBadge :status="template.is_active ? '激活' : '未激活'" size="sm" />
+                        <h4 class="font-semibold">
+                          {{ template.stage_type_display }}
+                        </h4>
+                        <div class="badge badge-sm">
+                          v{{ template.version }}
+                        </div>
+                        <StatusBadge
+                          :status="template.is_active ? '激活' : '未激活'"
+                          size="sm"
+                        />
                       </div>
                       <p class="text-sm text-base-content/60 line-clamp-2">
                         {{ template.template_content }}
@@ -136,24 +169,24 @@
                             type="checkbox"
                             class="toggle toggle-primary toggle-sm"
                             :checked="template.is_active"
-                            @change="handleToggleTemplateActive(template)"
                             :disabled="updatingTemplateId === template.id"
                             title="切换激活状态"
-                          />
+                            @change="handleToggleTemplateActive(template)"
+                          >
                         </label>
                       </div>
-                      <div class="divider divider-horizontal mx-0"></div>
+                      <div class="divider divider-horizontal mx-0" />
                       <button
                         class="btn btn-ghost btn-sm"
-                        @click="handleDebugTemplate(template)"
                         title="调试"
+                        @click="handleDebugTemplate(template)"
                       >
                         调试
                       </button>
                       <button
                         class="btn btn-ghost btn-sm"
-                        @click="handleEditTemplate(template)"
                         title="编辑"
+                        @click="handleEditTemplate(template)"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -168,8 +201,8 @@
                       </button>
                       <button
                         class="btn btn-ghost btn-sm text-error"
-                        @click="handleDeleteTemplate(template)"
                         title="删除"
+                        @click="handleDeleteTemplate(template)"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -191,7 +224,10 @@
             </div>
 
             <!-- 空状态 -->
-            <div v-else class="text-center py-8">
+            <div
+              v-else
+              class="text-center py-8"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-12 w-12 mx-auto text-base-300"
@@ -206,7 +242,9 @@
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              <p class="mt-4 text-base-content/60">暂无模板</p>
+              <p class="mt-4 text-base-content/60">
+                暂无模板
+              </p>
               <button
                 class="btn btn-primary btn-sm mt-4"
                 :disabled="!availableStageTypes.length"
@@ -220,65 +258,122 @@
       </PageCard>
 
       <!-- 未找到提示词集 -->
-      <div v-else-if="!loading" class="text-center py-12">
-        <p class="text-base-content/60">未找到该提示词集</p>
-        <button class="btn btn-primary btn-sm mt-4" @click="handleBack">返回列表</button>
+      <div
+        v-else-if="!loading"
+        class="text-center py-12"
+      >
+        <p class="text-base-content/60">
+          未找到该提示词集
+        </p>
+        <button
+          class="btn btn-primary btn-sm mt-4"
+          @click="handleBack"
+        >
+          返回列表
+        </button>
       </div>
     </LoadingContainer>
 
     <!-- 克隆对话框 -->
-    <dialog ref="cloneDialog" class="modal">
+    <dialog
+      ref="cloneDialog"
+      class="modal"
+    >
       <div class="modal-box">
-        <h3 class="font-bold text-lg">克隆提示词集</h3>
-        <p class="py-4">请为新的提示词集输入名称:</p>
+        <h3 class="font-bold text-lg">
+          克隆提示词集
+        </h3>
+        <p class="py-4">
+          请为新的提示词集输入名称:
+        </p>
         <div class="form-control">
           <input
             v-model="cloneName"
             type="text"
             placeholder="新提示词集名称"
             class="input input-bordered w-full"
-          />
+          >
         </div>
         <div class="modal-action">
-          <button class="btn" @click="$refs.cloneDialog.close()">取消</button>
-          <button class="btn btn-primary" @click="confirmClone" :disabled="!cloneName">
+          <button
+            class="btn"
+            @click="$refs.cloneDialog.close()"
+          >
+            取消
+          </button>
+          <button
+            class="btn btn-primary"
+            :disabled="!cloneName"
+            @click="confirmClone"
+          >
             确认克隆
           </button>
         </div>
       </div>
-      <form method="dialog" class="modal-backdrop">
+      <form
+        method="dialog"
+        class="modal-backdrop"
+      >
         <button>关闭</button>
       </form>
     </dialog>
 
     <!-- 创建模板对话框 -->
-    <dialog ref="createTemplateDialog" class="modal">
+    <dialog
+      ref="createTemplateDialog"
+      class="modal"
+    >
       <div class="modal-box">
-        <h3 class="font-bold text-lg">选择模板阶段</h3>
-        <p class="py-4">请选择要创建的模板阶段类型:</p>
+        <h3 class="font-bold text-lg">
+          选择模板阶段
+        </h3>
+        <p class="py-4">
+          请选择要创建的模板阶段类型:
+        </p>
         <div class="form-control">
           <select
             v-model="newTemplateStage"
             class="select select-bordered"
             :disabled="!availableStageTypes.length"
           >
-            <option value="">请选择...</option>
-            <option v-for="stage in availableStageTypes" :key="stage.value" :value="stage.value">
+            <option value="">
+              请选择...
+            </option>
+            <option
+              v-for="stage in availableStageTypes"
+              :key="stage.value"
+              :value="stage.value"
+            >
               {{ stage.label }}
             </option>
           </select>
-          <p v-if="!availableStageTypes.length" class="mt-3 text-sm text-base-content/70">
+          <p
+            v-if="!availableStageTypes.length"
+            class="mt-3 text-sm text-base-content/70"
+          >
             当前提示词集已创建全部模板阶段，无需重复添加。
           </p>
         </div>
         <div class="modal-action">
-          <button class="btn" @click="$refs.createTemplateDialog.close()">取消</button>
-          <button class="btn btn-primary" @click="confirmCreateTemplate" :disabled="!newTemplateStage">
+          <button
+            class="btn"
+            @click="$refs.createTemplateDialog.close()"
+          >
+            取消
+          </button>
+          <button
+            class="btn btn-primary"
+            :disabled="!newTemplateStage"
+            @click="confirmCreateTemplate"
+          >
             继续
           </button>
         </div>
       </div>
-      <form method="dialog" class="modal-backdrop">
+      <form
+        method="dialog"
+        class="modal-backdrop"
+      >
         <button>关闭</button>
       </form>
     </dialog>

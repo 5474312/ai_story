@@ -2,7 +2,10 @@
   <div class="model-form">
     <page-card :title="isEdit ? '编辑模型' : '添加模型'">
       <loading-container :loading="loading">
-        <form @submit.prevent="handleSubmit" class="space-y-6">
+        <form
+          class="space-y-6"
+          @submit.prevent="handleSubmit"
+        >
           <!-- 基本信息 -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="form-control">
@@ -15,7 +18,7 @@
                 placeholder="例如: OpenAI GPT-4"
                 class="input input-bordered"
                 required
-              />
+              >
             </div>
 
             <div class="form-control">
@@ -29,10 +32,18 @@
                 :disabled="isEdit"
                 @change="handleProviderTypeChange"
               >
-                <option value="">请选择类型</option>
-                <option value="llm">LLM模型</option>
-                <option value="text2image">文生图模型</option>
-                <option value="image2video">图生视频模型</option>
+                <option value="">
+                  请选择类型
+                </option>
+                <option value="llm">
+                  LLM模型
+                </option>
+                <option value="text2image">
+                  文生图模型
+                </option>
+                <option value="image2video">
+                  图生视频模型
+                </option>
               </select>
             </div>
 
@@ -46,7 +57,9 @@
                 required
                 :disabled="!formData.provider_type || loadingExecutors"
               >
-                <option value="">{{ loadingExecutors ? '加载中...' : '请选择执行器' }}</option>
+                <option value="">
+                  {{ loadingExecutors ? '加载中...' : '请选择执行器' }}
+                </option>
                 <option
                   v-for="executor in availableExecutors"
                   :key="executor.value"
@@ -74,7 +87,7 @@
                 placeholder="https://api.openai.com/v1/chat/completions"
                 class="input input-bordered"
                 required
-              />
+              >
             </div>
 
             <div class="form-control">
@@ -87,7 +100,7 @@
                 placeholder="例如: gpt-4-turbo-preview"
                 class="input input-bordered"
                 required
-              />
+              >
             </div>
           </div>
 
@@ -101,7 +114,7 @@
               placeholder="sk-..."
               class="input input-bordered"
               required
-            />
+            >
             <label class="label">
               <span class="label-text-alt text-base-content/60">
                 密钥将被安全存储,仅显示前8位和后4位
@@ -110,8 +123,13 @@
           </div>
 
           <!-- LLM专用参数 -->
-          <div v-if="formData.provider_type === 'llm'" class="space-y-4">
-            <div class="divider">LLM参数配置</div>
+          <div
+            v-if="formData.provider_type === 'llm'"
+            class="space-y-4"
+          >
+            <div class="divider">
+              LLM参数配置
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div class="form-control">
                 <label class="label">
@@ -123,7 +141,7 @@
                   min="1"
                   max="128000"
                   class="input input-bordered"
-                />
+                >
               </div>
 
               <div class="form-control">
@@ -137,7 +155,7 @@
                   max="2"
                   step="0.1"
                   class="input input-bordered"
-                />
+                >
               </div>
 
               <div class="form-control">
@@ -151,14 +169,19 @@
                   max="1"
                   step="0.1"
                   class="input input-bordered"
-                />
+                >
               </div>
             </div>
           </div>
 
           <!-- 文生图参数 -->
-          <div v-if="formData.provider_type === 'text2image'" class="space-y-4">
-            <div class="divider">文生图参数配置</div>
+          <div
+            v-if="formData.provider_type === 'text2image'"
+            class="space-y-4"
+          >
+            <div class="divider">
+              文生图参数配置
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="form-control">
                 <label class="label">
@@ -172,7 +195,7 @@
                   step="32"
                   class="input input-bordered"
                   placeholder="1024"
-                />
+                >
               </div>
 
               <div class="form-control">
@@ -187,14 +210,19 @@
                   step="32"
                   class="input input-bordered"
                   placeholder="1024"
-                />
+                >
               </div>
             </div>
           </div>
 
           <!-- 图生视频参数 -->
-          <div v-if="formData.provider_type === 'image2video'" class="space-y-4">
-            <div class="divider">图生视频参数配置</div>
+          <div
+            v-if="formData.provider_type === 'image2video'"
+            class="space-y-4"
+          >
+            <div class="divider">
+              图生视频参数配置
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="form-control">
                 <label class="label">
@@ -207,7 +235,7 @@
                   max="60"
                   class="input input-bordered"
                   placeholder="24"
-                />
+                >
               </div>
 
               <div class="form-control">
@@ -221,13 +249,15 @@
                   max="30"
                   class="input input-bordered"
                   placeholder="5"
-                />
+                >
               </div>
             </div>
           </div>
 
           <!-- 通用配置 -->
-          <div class="divider">通用配置</div>
+          <div class="divider">
+            通用配置
+          </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="form-control">
               <label class="label">
@@ -238,7 +268,7 @@
                 type="number"
                 min="0"
                 class="input input-bordered"
-              />
+              >
               <label class="label">
                 <span class="label-text-alt text-base-content/60">
                   数值越大优先级越高
@@ -255,7 +285,7 @@
                 type="number"
                 min="1"
                 class="input input-bordered"
-              />
+              >
             </div>
 
             <div class="form-control">
@@ -267,7 +297,7 @@
                 type="number"
                 min="1"
                 class="input input-bordered"
-              />
+              >
             </div>
           </div>
 
@@ -282,7 +312,7 @@
                 min="1"
                 max="600"
                 class="input input-bordered"
-              />
+              >
             </div>
 
             <div class="form-control">
@@ -294,7 +324,7 @@
                   v-model="formData.is_active"
                   type="checkbox"
                   class="toggle toggle-primary"
-                />
+                >
                 <span class="label-text">{{ formData.is_active ? '已激活' : '未激活' }}</span>
               </label>
             </div>
@@ -302,15 +332,22 @@
 
           <!-- 操作按钮 -->
           <div class="flex gap-3 pt-4">
-            <button type="submit" class="btn btn-primary" :disabled="submitting">
-              <span v-if="submitting" class="loading loading-spinner loading-sm"></span>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              :disabled="submitting"
+            >
+              <span
+                v-if="submitting"
+                class="loading loading-spinner loading-sm"
+              />
               {{ submitting ? '保存中...' : '保存' }}
             </button>
             <button
               type="button"
               class="btn btn-ghost"
-              @click="handleCancel"
               :disabled="submitting"
+              @click="handleCancel"
             >
               取消
             </button>

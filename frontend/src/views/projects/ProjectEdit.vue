@@ -2,28 +2,70 @@
   <div class="page-shell project-edit-page">
     <div class="page-header">
       <div class="page-header-main">
-        <button class="back-link" @click="goBack">← 返回</button>
-        <h1 class="page-title">编辑分集</h1>
-        <p class="page-subtitle">调整分集信息与原始主题，作品工作流配置会继续沿用。</p>
+        <button
+          class="back-link"
+          @click="goBack"
+        >
+          ← 返回
+        </button>
+        <h1 class="page-title">
+          编辑分集
+        </h1>
+        <p class="page-subtitle">
+          调整分集信息与原始主题，作品工作流配置会继续沿用。
+        </p>
       </div>
     </div>
 
     <LoadingContainer :loading="loading">
       <div class="form-panel">
-        <form class="form-body" @submit.prevent="handleSubmit">
+        <form
+          class="form-body"
+          @submit.prevent="handleSubmit"
+        >
           <div class="form-grid two-columns">
             <div class="form-control">
               <label class="field-label">所属作品 <span class="required-mark">*</span></label>
-              <select v-model="form.series" class="field-input" :disabled="loadingSeries">
-                <option :value="null" disabled>{{ loadingSeries ? '加载中...' : '请选择作品' }}</option>
-                <option v-for="item in seriesList" :key="item.id" :value="item.id">{{ item.name }}</option>
+              <select
+                v-model="form.series"
+                class="field-input"
+                :disabled="loadingSeries"
+              >
+                <option
+                  :value="null"
+                  disabled
+                >
+                  {{ loadingSeries ? '加载中...' : '请选择作品' }}
+                </option>
+                <option
+                  v-for="item in seriesList"
+                  :key="item.id"
+                  :value="item.id"
+                >
+                  {{ item.name }}
+                </option>
               </select>
             </div>
             <div class="form-control">
               <label class="field-label">提示词集</label>
-              <select v-model="form.prompt_template_set" class="field-input" :disabled="loadingTemplates">
-                <option :value="null" disabled>{{ loadingTemplates ? '加载中...' : '请选择提示词集' }}</option>
-                <option v-for="set in templateSets" :key="set.id" :value="set.id">{{ set.name }}</option>
+              <select
+                v-model="form.prompt_template_set"
+                class="field-input"
+                :disabled="loadingTemplates"
+              >
+                <option
+                  :value="null"
+                  disabled
+                >
+                  {{ loadingTemplates ? '加载中...' : '请选择提示词集' }}
+                </option>
+                <option
+                  v-for="set in templateSets"
+                  :key="set.id"
+                  :value="set.id"
+                >
+                  {{ set.name }}
+                </option>
               </select>
             </div>
           </div>
@@ -31,22 +73,43 @@
           <div class="form-grid two-columns">
             <div class="form-control">
               <label class="field-label">分集序号 <span class="required-mark">*</span></label>
-              <input v-model.number="form.episode_number" type="number" min="1" class="field-input" placeholder="1">
+              <input
+                v-model.number="form.episode_number"
+                type="number"
+                min="1"
+                class="field-input"
+                placeholder="1"
+              >
             </div>
             <div class="form-control">
               <label class="field-label">分集标题 <span class="required-mark">*</span></label>
-              <input v-model="form.episode_title" type="text" class="field-input" placeholder="例如：石猴出世">
+              <input
+                v-model="form.episode_title"
+                type="text"
+                class="field-input"
+                placeholder="例如：石猴出世"
+              >
             </div>
           </div>
 
           <div class="form-grid two-columns">
             <div class="form-control">
               <label class="field-label">分集名称</label>
-              <input v-model="form.name" type="text" class="field-input" placeholder="例如：第一集">
+              <input
+                v-model="form.name"
+                type="text"
+                class="field-input"
+                placeholder="例如：第一集"
+              >
             </div>
             <div class="form-control">
               <label class="field-label">分集描述</label>
-              <input v-model="form.description" type="text" class="field-input" placeholder="一句话描述这一集的主题">
+              <input
+                v-model="form.description"
+                type="text"
+                class="field-input"
+                placeholder="一句话描述这一集的主题"
+              >
             </div>
           </div>
 
@@ -57,14 +120,33 @@
               class="field-input field-textarea"
               :class="{ 'field-error': errors.original_topic }"
               placeholder="请输入这一集的原始主题、剧情简介或完整文案..."
-            ></textarea>
-            <p v-if="errors.original_topic" class="error-text">{{ errors.original_topic }}</p>
+            />
+            <p
+              v-if="errors.original_topic"
+              class="error-text"
+            >
+              {{ errors.original_topic }}
+            </p>
           </div>
 
           <div class="submit-bar">
-            <button type="button" class="ghost-link" @click="goBack" :disabled="submitting">取消</button>
-            <button type="submit" class="primary-action" :disabled="submitting">
-              <span v-if="submitting" class="loading loading-spinner loading-sm"></span>
+            <button
+              type="button"
+              class="ghost-link"
+              :disabled="submitting"
+              @click="goBack"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              class="primary-action"
+              :disabled="submitting"
+            >
+              <span
+                v-if="submitting"
+                class="loading loading-spinner loading-sm"
+              />
               <span>{{ submitting ? '保存中...' : '保存分集' }}</span>
             </button>
           </div>

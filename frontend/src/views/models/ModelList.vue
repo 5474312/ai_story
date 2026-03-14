@@ -2,12 +2,29 @@
   <div class="page-shell model-list">
     <div class="page-header">
       <div class="page-header-main">
-        <h1 class="page-title">模型管理</h1>
-        <p class="page-subtitle">管理模型提供商与运行状态</p>
+        <h1 class="page-title">
+          模型管理
+        </h1>
+        <p class="page-subtitle">
+          管理模型提供商与运行状态
+        </p>
       </div>
-      <button class="primary-action" @click="handleCreate">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      <button
+        class="primary-action"
+        @click="handleCreate"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
         </svg>
         <span>添加模型</span>
       </button>
@@ -15,8 +32,18 @@
 
     <div class="filter-card">
       <div class="search-box">
-        <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <svg
+          class="search-icon"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
         <input
           v-model="filters.search"
@@ -24,7 +51,7 @@
           placeholder="搜索模型名称"
           class="search-input"
           @keyup.enter="handleFilter"
-        />
+        >
       </div>
       <div class="select-group">
         <select
@@ -32,34 +59,76 @@
           class="select-input"
           @change="handleFilter"
         >
-          <option value="">全部类型</option>
-          <option value="llm">LLM模型</option>
-          <option value="text2image">文生图模型</option>
-          <option value="image2video">图生视频模型</option>
+          <option value="">
+            全部类型
+          </option>
+          <option value="llm">
+            LLM模型
+          </option>
+          <option value="text2image">
+            文生图模型
+          </option>
+          <option value="image2video">
+            图生视频模型
+          </option>
         </select>
         <select
           v-model="filters.is_active"
           class="select-input"
           @change="handleFilter"
         >
-          <option value="">全部状态</option>
-          <option value="true">已激活</option>
-          <option value="false">未激活</option>
+          <option value="">
+            全部状态
+          </option>
+          <option value="true">
+            已激活
+          </option>
+          <option value="false">
+            未激活
+          </option>
         </select>
       </div>
     </div>
 
-    <loading-container :loading="loading" class="loading-container">
-      <div v-if="providers.length === 0" class="empty-state">
-        <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+    <loading-container
+      :loading="loading"
+      class="loading-container"
+    >
+      <div
+        v-if="providers.length === 0"
+        class="empty-state"
+      >
+        <svg
+          class="empty-icon"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+          />
         </svg>
-        <p class="empty-text">暂无模型</p>
-        <p class="empty-hint">添加模型提供商后即可在项目中使用</p>
-        <button class="secondary-action" @click="handleCreate">添加模型</button>
+        <p class="empty-text">
+          暂无模型
+        </p>
+        <p class="empty-hint">
+          添加模型提供商后即可在项目中使用
+        </p>
+        <button
+          class="secondary-action"
+          @click="handleCreate"
+        >
+          添加模型
+        </button>
       </div>
 
-      <div v-else class="card-grid">
+      <div
+        v-else
+        class="card-grid"
+      >
         <article
           v-for="provider in providers"
           :key="provider.id"
@@ -68,8 +137,12 @@
         >
           <div class="card-header">
             <div>
-              <h3 class="card-title">{{ provider.name }}</h3>
-              <p class="card-subtitle">{{ provider.model_name }}</p>
+              <h3 class="card-title">
+                {{ provider.name }}
+              </h3>
+              <p class="card-subtitle">
+                {{ provider.model_name }}
+              </p>
             </div>
             <span
               class="badge badge-sm"
@@ -106,16 +179,28 @@
             <button
               class="ghost-action"
               :class="{ 'is-loading': testingProviderId === provider.id }"
-              @click.stop="handleTest(provider)"
               :disabled="!provider.is_active || testingProviderId !== null"
+              @click.stop="handleTest(provider)"
             >
-              <span v-if="testingProviderId === provider.id" class="action-spinner" aria-hidden="true"></span>
+              <span
+                v-if="testingProviderId === provider.id"
+                class="action-spinner"
+                aria-hidden="true"
+              />
               <span>{{ testingProviderId === provider.id ? '测试中...' : '测试' }}</span>
             </button>
-            <button class="ghost-action" @click.stop="handleToggleStatus(provider)">
+            <button
+              class="ghost-action"
+              @click.stop="handleToggleStatus(provider)"
+            >
               {{ provider.is_active ? '停用' : '启用' }}
             </button>
-            <button class="ghost-action danger" @click.stop="handleDelete(provider)">删除</button>
+            <button
+              class="ghost-action danger"
+              @click.stop="handleDelete(provider)"
+            >
+              删除
+            </button>
           </div>
         </article>
       </div>

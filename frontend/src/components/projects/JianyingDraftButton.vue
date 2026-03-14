@@ -26,9 +26,14 @@
     </button>
 
     <!-- 进度显示模态框 -->
-    <dialog ref="progressModal" class="modal">
+    <dialog
+      ref="progressModal"
+      class="modal"
+    >
       <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">生成剪映草稿</h3>
+        <h3 class="font-bold text-lg mb-4">
+          生成剪映草稿
+        </h3>
 
         <!-- 进度条 -->
         <div class="mb-4">
@@ -40,11 +45,14 @@
             class="progress progress-primary w-full"
             :value="progress"
             max="100"
-          ></progress>
+          />
         </div>
 
         <!-- 状态信息 -->
-        <div v-if="draftPath" class="alert alert-success">
+        <div
+          v-if="draftPath"
+          class="alert alert-success"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="stroke-current shrink-0 h-6 w-6"
@@ -59,13 +67,25 @@
             />
           </svg>
           <div>
-            <div class="font-semibold">草稿生成成功！</div>
-            <div class="text-sm">路径: {{ draftPath }}</div>
-            <div v-if="videoCount" class="text-sm">视频数量: {{ videoCount }}</div>
+            <div class="font-semibold">
+              草稿生成成功！
+            </div>
+            <div class="text-sm">
+              路径: {{ draftPath }}
+            </div>
+            <div
+              v-if="videoCount"
+              class="text-sm"
+            >
+              视频数量: {{ videoCount }}
+            </div>
           </div>
         </div>
 
-        <div v-if="errorMessage" class="alert alert-error">
+        <div
+          v-if="errorMessage"
+          class="alert alert-error"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="stroke-current shrink-0 h-6 w-6"

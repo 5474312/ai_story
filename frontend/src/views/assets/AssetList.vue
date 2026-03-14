@@ -2,12 +2,29 @@
   <div class="page-shell asset-list">
     <div class="page-header">
       <div class="page-header-main">
-        <h1 class="page-title">资产管理</h1>
-        <p class="page-subtitle">管理全局变量与系统资源</p>
+        <h1 class="page-title">
+          资产管理
+        </h1>
+        <p class="page-subtitle">
+          管理全局变量与系统资源
+        </p>
       </div>
-      <button class="primary-action" @click="handleCreate">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      <button
+        class="primary-action"
+        @click="handleCreate"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
         </svg>
         <span>新建资产</span>
       </button>
@@ -15,8 +32,18 @@
 
     <div class="filter-card">
       <div class="search-box">
-        <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <svg
+          class="search-icon"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
         <input
           v-model="searchKeyword"
@@ -24,49 +51,113 @@
           placeholder="搜索资产键或描述..."
           class="search-input"
           @input="handleSearch"
-        />
+        >
       </div>
       <div class="select-group">
-        <select v-model="filterScope" class="select-input" @change="handleFilter">
-          <option value="">全部作用域</option>
-          <option value="user">用户级</option>
-          <option value="system">系统级</option>
+        <select
+          v-model="filterScope"
+          class="select-input"
+          @change="handleFilter"
+        >
+          <option value="">
+            全部作用域
+          </option>
+          <option value="user">
+            用户级
+          </option>
+          <option value="system">
+            系统级
+          </option>
         </select>
-        <select v-model="filterType" class="select-input" @change="handleFilter">
-          <option value="">全部类型</option>
-          <option value="string">字符串</option>
-          <option value="number">数字</option>
-          <option value="boolean">布尔值</option>
-          <option value="json">JSON对象</option>
-          <option value="image">图片</option>
+        <select
+          v-model="filterType"
+          class="select-input"
+          @change="handleFilter"
+        >
+          <option value="">
+            全部类型
+          </option>
+          <option value="string">
+            字符串
+          </option>
+          <option value="number">
+            数字
+          </option>
+          <option value="boolean">
+            布尔值
+          </option>
+          <option value="json">
+            JSON对象
+          </option>
+          <option value="image">
+            图片
+          </option>
         </select>
-        <select v-model="filterGroup" class="select-input" @change="handleFilter">
-          <option value="">全部分组</option>
-          <option v-for="group in groups" :key="group" :value="group">
+        <select
+          v-model="filterGroup"
+          class="select-input"
+          @change="handleFilter"
+        >
+          <option value="">
+            全部分组
+          </option>
+          <option
+            v-for="group in groups"
+            :key="group"
+            :value="group"
+          >
             {{ group }}
           </option>
         </select>
       </div>
     </div>
 
-    <LoadingContainer :loading="loading" class="loading-container">
-      <div v-if="!loading && assets.length === 0" class="empty-state">
-        <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+    <LoadingContainer
+      :loading="loading"
+      class="loading-container"
+    >
+      <div
+        v-if="!loading && assets.length === 0"
+        class="empty-state"
+      >
+        <svg
+          class="empty-icon"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+          />
         </svg>
-        <p class="empty-text">暂无资产</p>
-        <p class="empty-hint">创建第一个资产，统一管理变量与资源</p>
-        <button class="secondary-action" @click="handleCreate">新建资产</button>
+        <p class="empty-text">
+          暂无资产
+        </p>
+        <p class="empty-hint">
+          创建第一个资产，统一管理变量与资源
+        </p>
+        <button
+          class="secondary-action"
+          @click="handleCreate"
+        >
+          新建资产
+        </button>
       </div>
 
-      <div v-else class="card-grid">
+      <div
+        v-else
+        class="card-grid"
+      >
         <article
           v-for="asset in assets"
           :key="asset.id"
           class="data-card"
-          @click="handleEdit(asset)"
           role="button"
           tabindex="0"
+          @click="handleEdit(asset)"
           @keydown.enter="handleEdit(asset)"
           @keydown.space.prevent="handleEdit(asset)"
         >
@@ -76,29 +167,48 @@
           </div>
 
           <div class="card-value">
-            <div v-if="asset.variable_type === 'image'" class="thumb-cell">
+            <div
+              v-if="asset.variable_type === 'image'"
+              class="thumb-cell"
+            >
               <img
                 v-if="asset.image_url"
                 :src="asset.image_url"
                 :alt="asset.key"
                 class="thumb"
                 @click.stop="previewImage(asset.image_url)"
-              />
-              <span v-else class="muted">未上传</span>
+              >
+              <span
+                v-else
+                class="muted"
+              >未上传</span>
             </div>
-            <div v-else class="value-text" :title="String(asset.value)">
+            <div
+              v-else
+              class="value-text"
+              :title="String(asset.value)"
+            >
               {{ formatValue(asset) }}
             </div>
           </div>
 
           <div class="card-tags">
-            <span class="badge badge-sm" :class="getTypeBadgeClass(asset.variable_type)">
+            <span
+              class="badge badge-sm"
+              :class="getTypeBadgeClass(asset.variable_type)"
+            >
               {{ asset.variable_type_display }}
             </span>
-            <span class="badge badge-sm" :class="getScopeBadgeClass(asset.scope)">
+            <span
+              class="badge badge-sm"
+              :class="getScopeBadgeClass(asset.scope)"
+            >
               {{ asset.scope_display }}
             </span>
-            <span v-if="asset.group" class="pill">{{ asset.group }}</span>
+            <span
+              v-if="asset.group"
+              class="pill"
+            >{{ asset.group }}</span>
           </div>
 
           <p class="card-desc">
@@ -110,9 +220,9 @@
             <div class="row-actions">
               <button
                 class="ghost-action"
-                @click.stop="handleDelete(asset)"
                 :disabled="asset.scope === 'system' && !isAdmin"
                 title="删除"
+                @click.stop="handleDelete(asset)"
               >
                 删除
               </button>
@@ -123,14 +233,33 @@
     </LoadingContainer>
 
     <!-- 图片预览弹窗 -->
-    <div v-if="previewImageUrl" class="modal modal-open" @click="previewImageUrl = null">
-      <div class="modal-box max-w-4xl" @click.stop>
-        <img :src="previewImageUrl" alt="预览" class="w-full" />
+    <div
+      v-if="previewImageUrl"
+      class="modal modal-open"
+      @click="previewImageUrl = null"
+    >
+      <div
+        class="modal-box max-w-4xl"
+        @click.stop
+      >
+        <img
+          :src="previewImageUrl"
+          alt="预览"
+          class="w-full"
+        >
         <div class="modal-action">
-          <button class="btn" @click="previewImageUrl = null">关闭</button>
+          <button
+            class="btn"
+            @click="previewImageUrl = null"
+          >
+            关闭
+          </button>
         </div>
       </div>
-      <div class="modal-backdrop" @click="previewImageUrl = null"></div>
+      <div
+        class="modal-backdrop"
+        @click="previewImageUrl = null"
+      />
     </div>
   </div>
 </template>

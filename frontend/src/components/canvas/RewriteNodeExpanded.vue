@@ -7,10 +7,23 @@
   >
     <div class="node-header">
       <div class="header-left">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
         </svg>
-        <h3 class="node-title">原始文案</h3>
+        <h3 class="node-title">
+          原始文案
+        </h3>
       </div>
       <div class="header-right">
         <div class="action-icons">
@@ -21,10 +34,30 @@
             title="运行改写"
             @click.stop="handleQuickExecute('rewrite')"
           >
-            <span v-if="isExecuting && !isGeneratingStoryboard" class="loading loading-spinner loading-xs"></span>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <span
+              v-if="isExecuting && !isGeneratingStoryboard"
+              class="loading loading-spinner loading-xs"
+            />
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </button>
 
@@ -35,9 +68,24 @@
             title="生成分镜"
             @click.stop="handleGenerateStoryboard('storyboard')"
           >
-            <span v-if="isGeneratingStoryboard" class="loading loading-spinner loading-xs"></span>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+            <span
+              v-if="isGeneratingStoryboard"
+              class="loading loading-spinner loading-xs"
+            />
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
+              />
             </svg>
           </button>
         </div>
@@ -51,51 +99,70 @@
             class="original-text"
             @wheel.stop
             @mousedown.stop
-          >{{ displayOriginalText }}</div>
+          >
+            {{ displayOriginalText }}
+          </div>
         </div>
       </div>
 
-      <div v-if="showRewriteNode" class="sub-node sub-node-rewrite sub-node-editor">
+      <div
+        v-if="showRewriteNode"
+        class="sub-node sub-node-rewrite sub-node-editor"
+      >
         <div class="sub-node-header">
           <div class="sub-node-title-wrap">
-            <svg xmlns="http://www.w3.org/2000/svg" class="sub-node-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="sub-node-icon"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
             </svg>
             <span class="sub-node-title">改写后文案</span>
           </div>
         </div>
         <div class="sub-node-body sub-node-body-editor">
           <div class="textarea-autocomplete-wrap">
-          <textarea
-            ref="rewriteTextarea"
-            v-model="localText"
-            class="textarea textarea-bordered w-full rewrite-textarea"
-            rows="3"
-            placeholder="改写后的文案将显示在这里..."
-            :disabled="status === 'processing'"
-            @focus="handleFocus"
-            @blur="handleBlur"
-            @input="handleTextInput"
-            @click="handleCursorChange"
-            @keyup="handleCursorChange"
-            @keydown.down.prevent="navigateAutocomplete(1)"
-            @keydown.up.prevent="navigateAutocomplete(-1)"
-            @keydown.enter.exact.prevent="confirmAutocomplete"
-            @keydown.esc.prevent="closeAutocomplete"
-            @wheel.stop
-            @mousedown.stop
-          ></textarea>
-            <div v-if="showAutocomplete && filteredAssetOptions.length" class="asset-autocomplete prevent-canvas-wheel">
-            <button
-              v-for="(asset, index) in filteredAssetOptions"
-              :key="asset.id"
-              type="button"
-              class="asset-autocomplete-item"
-              :class="{ active: highlightedAssetIndex === index }"
-              @mousedown.prevent="selectAutocomplete(asset.key)"
+            <textarea
+              ref="rewriteTextarea"
+              v-model="localText"
+              class="textarea textarea-bordered w-full rewrite-textarea"
+              rows="3"
+              placeholder="改写后的文案将显示在这里..."
+              :disabled="status === 'processing'"
+              @focus="handleFocus"
+              @blur="handleBlur"
+              @input="handleTextInput"
+              @click="handleCursorChange"
+              @keyup="handleCursorChange"
+              @keydown.down.prevent="navigateAutocomplete(1)"
+              @keydown.up.prevent="navigateAutocomplete(-1)"
+              @keydown.enter.exact.prevent="confirmAutocomplete"
+              @keydown.esc.prevent="closeAutocomplete"
+              @wheel.stop
+              @mousedown.stop
+            />
+            <div
+              v-if="showAutocomplete && filteredAssetOptions.length"
+              class="asset-autocomplete prevent-canvas-wheel"
             >
-              <code>{{ asset.key }}</code>
-              <span>{{ asset.group || asset.variable_type_display }}</span>
+              <button
+                v-for="(asset, index) in filteredAssetOptions"
+                :key="asset.id"
+                type="button"
+                class="asset-autocomplete-item"
+                :class="{ active: highlightedAssetIndex === index }"
+                @mousedown.prevent="selectAutocomplete(asset.key)"
+              >
+                <code>{{ asset.key }}</code>
+                <span>{{ asset.group || asset.variable_type_display }}</span>
               </button>
             </div>
           </div>
@@ -103,7 +170,10 @@
       </div>
     </div>
 
-    <div v-if="data && data.model_provider" class="node-metadata">
+    <div
+      v-if="data && data.model_provider"
+      class="node-metadata"
+    >
       <div class="metadata-item">
         <span class="metadata-label">使用模型:</span>
         <span class="metadata-value">{{ data.model_provider.model_name || 'N/A' }}</span>
@@ -220,6 +290,12 @@ export default {
       if (this.highlightedAssetIndex >= this.filteredAssetOptions.length) {
         this.highlightedAssetIndex = 0;
       }
+    }
+  },
+  beforeDestroy() {
+    if (this.sseClient) {
+      this.sseClient.disconnect();
+      this.sseClient = null;
     }
   },
   methods: {
@@ -460,12 +536,6 @@ export default {
     formatDate(dateStr) {
       if (!dateStr) return 'N/A';
       return new Date(dateStr).toLocaleString('zh-CN');
-    }
-  },
-  beforeDestroy() {
-    if (this.sseClient) {
-      this.sseClient.disconnect();
-      this.sseClient = null;
     }
   }
 };

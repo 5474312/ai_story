@@ -12,31 +12,74 @@
     <div class="node-header">
       <div class="node-icon">
         <slot name="icon">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
           </svg>
         </slot>
       </div>
-      <div class="node-title">{{ title }}</div>
+      <div class="node-title">
+        {{ title }}
+      </div>
       <div class="node-status-indicator">
-        <span v-if="status === 'processing'" class="loading loading-spinner loading-xs"></span>
-        <svg v-else-if="status === 'completed'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        <span
+          v-if="status === 'processing'"
+          class="loading loading-spinner loading-xs"
+        />
+        <svg
+          v-else-if="status === 'completed'"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
         </svg>
-        <svg v-else-if="status === 'failed'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <svg
+          v-else-if="status === 'failed'"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </div>
     </div>
 
     <!-- 节点内容 -->
     <div class="node-body">
-      <slot></slot>
+      <slot />
     </div>
 
     <!-- 节点底部（可选） -->
-    <div v-if="$slots.footer" class="node-footer">
-      <slot name="footer"></slot>
+    <div
+      v-if="$slots.footer"
+      class="node-footer"
+    >
+      <slot name="footer" />
     </div>
   </div>
 </template>

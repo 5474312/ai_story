@@ -2,8 +2,15 @@
   <div class="page-shell project-create-page">
     <div class="page-header">
       <div class="page-header-main">
-        <button class="back-link" @click="goBack">← 返回</button>
-        <h1 class="page-title">创建分集</h1>
+        <button
+          class="back-link"
+          @click="goBack"
+        >
+          ← 返回
+        </button>
+        <h1 class="page-title">
+          创建分集
+        </h1>
         <p class="page-subtitle">
           支持单集创建和批量创建，批量模式会复用同一套基础配置。
         </p>
@@ -11,7 +18,10 @@
     </div>
 
     <div class="form-layout">
-      <form class="form-body" @submit.prevent="handleSubmit">
+      <form
+        class="form-body"
+        @submit.prevent="handleSubmit"
+      >
         <div class="mode-section">
           <div class="mode-switch">
             <button
@@ -34,17 +44,36 @@
         <div class="card-block">
           <div class="card-top">
             <div>
-              <h2 class="card-title">基础配置</h2>
-              <p class="card-desc">这些配置会应用到本次创建的全部分集。</p>
+              <h2 class="card-title">
+                基础配置
+              </h2>
+              <p class="card-desc">
+                这些配置会应用到本次创建的全部分集。
+              </p>
             </div>
           </div>
 
           <div class="card-meta form-grid two-columns">
             <div class="form-control">
               <label class="field-label">所属作品 <span class="required-mark">*</span></label>
-              <select v-model="form.series" class="field-input" :class="{ 'field-error': !form.series && submitTried }">
-                <option :value="null" disabled>请选择作品</option>
-                <option v-for="item in seriesList" :key="item.id" :value="item.id">{{ item.name }}</option>
+              <select
+                v-model="form.series"
+                class="field-input"
+                :class="{ 'field-error': !form.series && submitTried }"
+              >
+                <option
+                  :value="null"
+                  disabled
+                >
+                  请选择作品
+                </option>
+                <option
+                  v-for="item in seriesList"
+                  :key="item.id"
+                  :value="item.id"
+                >
+                  {{ item.name }}
+                </option>
               </select>
             </div>
             <div class="form-control">
@@ -55,10 +84,26 @@
                 :class="{ 'field-error': errors.prompt_template_set }"
                 :disabled="loadingTemplates"
               >
-                <option :value="null" disabled>{{ loadingTemplates ? '加载中...' : '请选择提示词集' }}</option>
-                <option v-for="set in templateSets" :key="set.id" :value="set.id">{{ set.name }}</option>
+                <option
+                  :value="null"
+                  disabled
+                >
+                  {{ loadingTemplates ? '加载中...' : '请选择提示词集' }}
+                </option>
+                <option
+                  v-for="set in templateSets"
+                  :key="set.id"
+                  :value="set.id"
+                >
+                  {{ set.name }}
+                </option>
               </select>
-              <p v-if="errors.prompt_template_set" class="error-text">{{ errors.prompt_template_set }}</p>
+              <p
+                v-if="errors.prompt_template_set"
+                class="error-text"
+              >
+                {{ errors.prompt_template_set }}
+              </p>
             </div>
           </div>
 
@@ -72,7 +117,10 @@
                 placeholder="一句话描述这一批分集的共同主题"
               >
             </div>
-            <div v-if="form.mode === 'batch'" class="form-control">
+            <div
+              v-if="form.mode === 'batch'"
+              class="form-control"
+            >
               <label class="field-label">起始分集序号 <span class="required-mark">*</span></label>
               <input
                 v-model.number="form.start_episode_number"
@@ -82,38 +130,69 @@
                 :class="{ 'field-error': errors.start_episode_number }"
                 placeholder="例如：12"
               >
-              <p v-if="errors.start_episode_number" class="error-text">{{ errors.start_episode_number }}</p>
+              <p
+                v-if="errors.start_episode_number"
+                class="error-text"
+              >
+                {{ errors.start_episode_number }}
+              </p>
             </div>
           </div>
         </div>
 
-        <div v-if="form.mode === 'single'" class="card-block">
+        <div
+          v-if="form.mode === 'single'"
+          class="card-block"
+        >
           <div class="card-top">
             <div>
-              <h2 class="card-title">分集信息</h2>
-              <p class="card-desc">填写这一集的标题、名称和原始文案。</p>
+              <h2 class="card-title">
+                分集信息
+              </h2>
+              <p class="card-desc">
+                填写这一集的标题、名称和原始文案。
+              </p>
             </div>
           </div>
 
           <div class="card-meta form-grid two-columns">
             <div class="form-control">
               <label class="field-label">分集序号 <span class="required-mark">*</span></label>
-              <input v-model.number="form.episode_number" type="number" min="1" class="field-input" placeholder="1">
+              <input
+                v-model.number="form.episode_number"
+                type="number"
+                min="1"
+                class="field-input"
+                placeholder="1"
+              >
             </div>
             <div class="form-control">
               <label class="field-label">分集标题 <span class="required-mark">*</span></label>
-              <input v-model="form.episode_title" type="text" class="field-input" placeholder="例如：石猴出世" @input="handleSingleTitleInput">
+              <input
+                v-model="form.episode_title"
+                type="text"
+                class="field-input"
+                placeholder="例如：石猴出世"
+                @input="handleSingleTitleInput"
+              >
             </div>
           </div>
 
           <div class="card-meta form-grid two-columns">
             <div class="form-control">
               <label class="field-label">分集名称</label>
-              <input v-model="form.name" type="text" class="field-input" placeholder="例如：第1集">
+              <input
+                v-model="form.name"
+                type="text"
+                class="field-input"
+                placeholder="例如：第1集"
+              >
             </div>
             <div class="form-control form-control--hint">
               <span class="field-label">自动命名</span>
-              <p class="helper-text">若名称留空，将按“第N集”自动生成。</p>
+              <p class="helper-text">
+                若名称留空，将按“第N集”自动生成。
+              </p>
             </div>
           </div>
 
@@ -122,25 +201,48 @@
             <textarea
               v-model="form.original_topic"
               class="field-input field-textarea"
-              @input="handleSingleTopicInput"
               :class="{ 'field-error': errors.original_topic }"
               placeholder="请输入这一集的原始主题、剧情简介或完整文案..."
-            ></textarea>
-            <p v-if="errors.original_topic" class="error-text">{{ errors.original_topic }}</p>
+              @input="handleSingleTopicInput"
+            />
+            <p
+              v-if="errors.original_topic"
+              class="error-text"
+            >
+              {{ errors.original_topic }}
+            </p>
           </div>
         </div>
 
-        <div v-else class="card-block">
+        <div
+          v-else
+          class="card-block"
+        >
           <div class="card-top">
             <div>
-              <h2 class="card-title">批量分集列表</h2>
-              <p class="card-desc">每行一集，序号会从起始分集序号开始自动递增。</p>
+              <h2 class="card-title">
+                批量分集列表
+              </h2>
+              <p class="card-desc">
+                每行一集，序号会从起始分集序号开始自动递增。
+              </p>
             </div>
-            <button type="button" class="secondary-action" @click="addBatchEpisode">新增一集</button>
+            <button
+              type="button"
+              class="secondary-action"
+              @click="addBatchEpisode"
+            >
+              新增一集
+            </button>
           </div>
 
-          <div v-if="submitTried && errors.batch_episodes" class="card-meta">
-            <p class="error-text">{{ errors.batch_episodes }}</p>
+          <div
+            v-if="submitTried && errors.batch_episodes"
+            class="card-meta"
+          >
+            <p class="error-text">
+              {{ errors.batch_episodes }}
+            </p>
           </div>
 
           <div class="batch-list">
@@ -151,8 +253,12 @@
             >
               <div class="card-top batch-item-top">
                 <div>
-                  <h3 class="batch-title">第{{ getBatchEpisodeNumber(index) || '-' }}集</h3>
-                  <p class="card-desc">只需填写每集不同的标题和文案。</p>
+                  <h3 class="batch-title">
+                    第{{ getBatchEpisodeNumber(index) || '-' }}集
+                  </h3>
+                  <p class="card-desc">
+                    只需填写每集不同的标题和文案。
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -171,11 +277,14 @@
                     v-model="episode.episode_title"
                     type="text"
                     class="field-input"
-                    @input="handleBatchTitleInput(index)"
                     :class="{ 'field-error': getBatchEpisodeError(index, 'episode_title') }"
                     placeholder="例如：大闹天宫"
+                    @input="handleBatchTitleInput(index)"
                   >
-                  <p v-if="getBatchEpisodeError(index, 'episode_title')" class="error-text">
+                  <p
+                    v-if="getBatchEpisodeError(index, 'episode_title')"
+                    class="error-text"
+                  >
                     {{ getBatchEpisodeError(index, 'episode_title') }}
                   </p>
                 </div>
@@ -195,11 +304,14 @@
                 <textarea
                   v-model="episode.original_topic"
                   class="field-input batch-textarea"
-                  @input="handleBatchTopicInput(index)"
                   :class="{ 'field-error': getBatchEpisodeError(index, 'original_topic') }"
                   placeholder="请输入这一集的原始文案或剧情简介..."
-                ></textarea>
-                <p v-if="getBatchEpisodeError(index, 'original_topic')" class="error-text">
+                  @input="handleBatchTopicInput(index)"
+                />
+                <p
+                  v-if="getBatchEpisodeError(index, 'original_topic')"
+                  class="error-text"
+                >
                   {{ getBatchEpisodeError(index, 'original_topic') }}
                 </p>
               </div>
@@ -207,14 +319,34 @@
           </div>
 
           <div class="batch-actions-bottom">
-            <button type="button" class="secondary-action" @click="addBatchEpisode">新增一集</button>
+            <button
+              type="button"
+              class="secondary-action"
+              @click="addBatchEpisode"
+            >
+              新增一集
+            </button>
           </div>
         </div>
 
         <div class="submit-bar">
-          <button type="button" class="ghost-link" @click="goBack" :disabled="submitting">取消</button>
-          <button type="submit" class="primary-action" :disabled="submitting">
-            <span v-if="submitting" class="loading loading-spinner loading-sm"></span>
+          <button
+            type="button"
+            class="ghost-link"
+            :disabled="submitting"
+            @click="goBack"
+          >
+            取消
+          </button>
+          <button
+            type="submit"
+            class="primary-action"
+            :disabled="submitting"
+          >
+            <span
+              v-if="submitting"
+              class="loading loading-spinner loading-sm"
+            />
             <span>{{ submitLabel }}</span>
           </button>
         </div>
