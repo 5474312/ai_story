@@ -364,7 +364,7 @@ export default {
         this.$router.push(`/prompts/sets/${newSet.id}`);
       } catch (error) {
         console.error('克隆提示词集失败:', error);
-        alert('克隆失败,请重试');
+        await this.$alert('克隆失败,请重试', '操作失败', { tone: 'warning' });
       }
     },
 
@@ -374,7 +374,7 @@ export default {
         await this.loadData();
       } catch (error) {
         console.error('设置默认提示词集失败:', error);
-        alert('设置默认失败,请重试');
+        await this.$alert('设置默认失败,请重试', '操作失败', { tone: 'warning' });
       }
     },
 
@@ -387,7 +387,7 @@ export default {
         await this.loadData();
       } catch (error) {
         console.error('更新状态失败:', error);
-        alert('更新状态失败,请重试');
+        await this.$alert('更新状态失败,请重试', '操作失败', { tone: 'warning' });
       }
     },
 
@@ -407,7 +407,7 @@ export default {
         this.$router.push('/prompts');
       } catch (error) {
         console.error('删除提示词集失败:', error);
-        alert('删除失败,请重试');
+        await this.$alert('删除失败,请重试', '删除失败', { tone: 'warning' });
       }
     },
 
@@ -454,7 +454,7 @@ export default {
         await this.loadData();
       } catch (error) {
         console.error('删除模板失败:', error);
-        alert('删除模板失败,请重试');
+        await this.$alert('删除模板失败,请重试', '删除失败', { tone: 'warning' });
       }
     },
 
@@ -474,7 +474,7 @@ export default {
         // 不需要重新加载整个页面,Vuex mutation 已经更新了状态
       } catch (error) {
         console.error('更新模板激活状态失败:', error);
-        alert('更新激活状态失败,请重试');
+        await this.$alert('更新激活状态失败,请重试', '操作失败', { tone: 'warning' });
         // 如果失败,重新加载数据以恢复正确状态
         await this.loadData();
       } finally {

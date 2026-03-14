@@ -428,7 +428,7 @@ export default {
     },
     validateCommonFields() {
       if (!this.form.series) {
-        alert('请选择所属作品');
+        this.$alert('请选择所属作品', '表单校验', { tone: 'warning' });
         return false;
       }
       if (!this.form.prompt_template_set) {
@@ -442,11 +442,11 @@ export default {
         return false;
       }
       if (!this.form.episode_number || this.form.episode_number < 1) {
-        alert('请输入有效的分集序号');
+        this.$alert('请输入有效的分集序号', '表单校验', { tone: 'warning' });
         return false;
       }
       if (!this.form.episode_title.trim()) {
-        alert('请输入分集标题');
+        this.$alert('请输入分集标题', '表单校验', { tone: 'warning' });
         return false;
       }
       if (!this.form.original_topic.trim()) {
@@ -536,7 +536,7 @@ export default {
         this.$router.push({ name: 'ProjectDetail', params: { id: project.id } });
       } catch (error) {
         const errorMsg = error.response?.data?.message || error.response?.data?.detail || error.message || '创建分集失败';
-        alert(errorMsg);
+        await this.$alert(errorMsg, '创建失败', { tone: 'warning' });
       } finally {
         this.submitting = false;
       }

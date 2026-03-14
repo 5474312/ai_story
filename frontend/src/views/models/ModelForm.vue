@@ -395,7 +395,7 @@ export default {
         }
       } catch (error) {
         console.error('加载模型失败:', error)
-        alert('加载模型失败')
+        await this.$alert('加载模型失败', '加载失败', { tone: 'warning' })
         this.$router.push({ name: 'ModelList' })
       }
     },
@@ -454,10 +454,10 @@ export default {
             id: this.$route.params.id,
             data: submitData
           })
-          alert('更新成功')
+          await this.$alert('更新成功', '操作完成')
         } else {
           await this.createProvider(submitData)
-          alert('创建成功')
+          await this.$alert('创建成功', '操作完成')
         }
 
         this.$router.push({ name: 'ModelList' })
@@ -467,7 +467,7 @@ export default {
           error.response?.data?.message ||
           Object.values(error.response?.data || {}).flat().join(', ') ||
           '保存失败'
-        alert(errorMsg)
+        await this.$alert(errorMsg, '保存失败', { tone: 'warning' })
       } finally {
         this.submitting = false
       }

@@ -539,6 +539,8 @@ class Text2ImageStageProcessor(StageProcessor):
                 'ratio': ratio,
                 'resolution': resolution
             }
+            height = provider.extra_config.get("height", "1024")
+            width = provider.extra_config.get("width", "1024")
             client = create_ai_client(provider)
             # 调用generate (同步函数)
             response = client.generate(
@@ -547,7 +549,9 @@ class Text2ImageStageProcessor(StageProcessor):
                 model=model_name,
                 prompt=prompt,
                 ratio=ratio,
-                resolution=resolution
+                resolution=resolution,
+                height=height,
+                width=width
             )
 
             if not response:

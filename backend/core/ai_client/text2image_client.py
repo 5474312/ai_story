@@ -65,7 +65,7 @@ class Text2ImageClient(BaseText2ImageClient):
         ratio = kwargs.get('ratio', '1:1')
         resolution = kwargs.get('resolution', '2k')
         timeout = kwargs.get('timeout', self.config.get('timeout', 60))
-
+        size = f'{width}x{height}'
         headers = {
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {api_key}',
@@ -82,6 +82,7 @@ class Text2ImageClient(BaseText2ImageClient):
             payload = {
                 'model': model_name,
                 'prompt': content,
+                'size': size
             }
         else:
             payload = {

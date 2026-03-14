@@ -167,7 +167,7 @@ export default {
     },
     async submitForm() {
       if (!this.form.name.trim()) {
-        alert('请输入作品名称');
+        await this.$alert('请输入作品名称', '表单校验', { tone: 'warning' });
         return;
       }
 

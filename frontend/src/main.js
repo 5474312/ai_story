@@ -16,6 +16,7 @@ Vue.prototype.$message = message;
 
 // 全局confirm对话框
 Vue.prototype.$confirm = (msg, title = '确认', options = {}) => confirm.open(msg, title, options);
+Vue.prototype.$alert = (msg, title = '提示', options = {}) => confirm.alert(msg, title, options);
 
 // 全局错误处理
 Vue.config.errorHandler = (err, vm, info) => {

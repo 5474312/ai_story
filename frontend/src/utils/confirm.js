@@ -8,6 +8,7 @@ const defaultState = {
   cancelText: '取消',
   tone: 'primary',
   closeOnBackdrop: true,
+  showCancel: true,
 };
 
 const state = Vue.observable({ ...defaultState });
@@ -29,10 +30,10 @@ function finish(result) {
     return;
   }
 
-  const { resolve } = activeRequest;
+  const { resolve, confirmValue, cancelValue } = activeRequest;
   activeRequest = null;
   Object.assign(state, { ...defaultState });
-  resolve(result);
+  resolve(result ? confirmValue : cancelValue);
 
   Vue.nextTick(() => {
     showNext();
@@ -66,7 +67,20 @@ function open(message, title = '确认', options = {}) {
   const config = normalizeConfig(message, title, options);
 
   return new Promise((resolve) => {
-    queue.push({ config, resolve });
+    queue.push({ config, resolve, confirmValue: true, cancelValue: false });
+    showNext();
+  });
+}
+
+function alert(message, title = '提示', options = {}) {
+  const config = normalizeConfig(message, title, {
+    confirmText: '知道了',
+    showCancel: false,
+    ...options,
+  });
+
+  return new Promise((resolve) => {
+    queue.push({ config, resolve, confirmValue: true, cancelValue: true });
     showNext();
   });
 }
@@ -74,6 +88,7 @@ function open(message, title = '确认', options = {}) {
 export default {
   state,
   open,
+  alert,
   confirm() {
     finish(true);
   },

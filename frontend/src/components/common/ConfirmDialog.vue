@@ -28,7 +28,12 @@
           </div>
 
           <div class="confirm-dialog__actions">
-            <button type="button" class="confirm-dialog__button confirm-dialog__button--secondary" @click="handleCancel">
+            <button
+              v-if="state.showCancel"
+              type="button"
+              class="confirm-dialog__button confirm-dialog__button--secondary"
+              @click="handleCancel"
+            >
               {{ state.cancelText }}
             </button>
             <button
