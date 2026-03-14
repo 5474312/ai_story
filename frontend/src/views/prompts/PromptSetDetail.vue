@@ -84,7 +84,11 @@
           <div class="card-body">
             <div class="flex items-center justify-between mb-4">
               <h3 class="card-title text-base">提示词模板</h3>
-              <button class="btn btn-primary btn-sm" @click="handleCreateTemplate">
+              <button
+                class="btn btn-primary btn-sm"
+                :disabled="!availableStageTypes.length"
+                @click="handleCreateTemplate"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-5 w-5 mr-1"
@@ -203,7 +207,11 @@
                 />
               </svg>
               <p class="mt-4 text-base-content/60">暂无模板</p>
-              <button class="btn btn-primary btn-sm mt-4" @click="handleCreateTemplate">
+              <button
+                class="btn btn-primary btn-sm mt-4"
+                :disabled="!availableStageTypes.length"
+                @click="handleCreateTemplate"
+              >
                 创建第一个模板
               </button>
             </div>
@@ -249,12 +257,19 @@
         <h3 class="font-bold text-lg">选择模板阶段</h3>
         <p class="py-4">请选择要创建的模板阶段类型:</p>
         <div class="form-control">
-          <select v-model="newTemplateStage" class="select select-bordered">
+          <select
+            v-model="newTemplateStage"
+            class="select select-bordered"
+            :disabled="!availableStageTypes.length"
+          >
             <option value="">请选择...</option>
-            <option v-for="stage in stageTypes" :key="stage.value" :value="stage.value">
+            <option v-for="stage in availableStageTypes" :key="stage.value" :value="stage.value">
               {{ stage.label }}
             </option>
           </select>
+          <p v-if="!availableStageTypes.length" class="mt-3 text-sm text-base-content/70">
+            当前提示词集已创建全部模板阶段，无需重复添加。
+          </p>
         </div>
         <div class="modal-action">
           <button class="btn" @click="$refs.createTemplateDialog.close()">取消</button>
@@ -308,6 +323,12 @@ export default {
       // 直接从提示词集详情中获取模板列表
       if (!this.promptSet || !this.promptSet.templates) return [];
       return this.promptSet.templates;
+    },
+    existingStageTypes() {
+      return new Set(this.templates.map((template) => template.stage_type).filter(Boolean));
+    },
+    availableStageTypes() {
+      return this.stageTypes.filter((stage) => !this.existingStageTypes.has(stage.value));
     },
   },
   async created() {
@@ -412,7 +433,11 @@ export default {
     },
 
     handleCreateTemplate() {
-      this.newTemplateStage = '';
+      if (!this.availableStageTypes.length) {
+        return;
+      }
+
+      this.newTemplateStage = this.availableStageTypes[0]?.value || '';
       this.$refs.createTemplateDialog.showModal();
     },
 

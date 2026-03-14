@@ -103,12 +103,13 @@ export default {
     }
   },
   data() {
+    const initialDescription = this.getMovementDescription(this.movementParams);
     return {
       localMovementType: this.movementType,
-      localDescription: this.movementParams?.description || this.movementParams?.raw_text || '',
+      localDescription: initialDescription,
       isGenerating: false,
       lastSavedMovementType: this.movementType,
-      lastSavedDescription: this.movementParams?.description || this.movementParams?.raw_text || ''
+      lastSavedDescription: initialDescription
     };
   },
   computed: {
@@ -127,15 +128,19 @@ export default {
     },
     movementParams: {
       handler(newVal) {
-        if (newVal?.description !== undefined) {
-          this.localDescription = newVal.description;
-          this.lastSavedDescription = newVal.description;
+        const nextDescription = this.getMovementDescription(newVal);
+        if (nextDescription !== this.lastSavedDescription) {
+          this.localDescription = nextDescription;
+          this.lastSavedDescription = nextDescription;
         }
       },
       deep: true
     }
   },
   methods: {
+    getMovementDescription(params) {
+      return params?.description || params?.raw_text || '';
+    },
     async handleGenerate() {
       this.isGenerating = true;
       try {
