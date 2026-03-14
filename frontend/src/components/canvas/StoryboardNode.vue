@@ -3,6 +3,7 @@
     class="storyboard-node"
     :class="`status-${overallStatus}`"
     :style="nodeStyle"
+    @dblclick="handleNodeDoubleClick"
   >
     <div class="node-header">
       <div class="header-left">
@@ -224,6 +225,21 @@ export default {
     }
   },
   methods: {
+    handleNodeDoubleClick(event) {
+      if (this.shouldIgnoreNodeDoubleClick(event.target)) {
+        return;
+      }
+      this.$emit('node-dblclick');
+    },
+    shouldIgnoreNodeDoubleClick(target) {
+      if (!(target instanceof Element)) {
+        return false;
+      }
+
+      return Boolean(
+        target.closest('button, input, textarea, select, option, video, [contenteditable="true"], .prevent-canvas-wheel')
+      );
+    },
     handleSave() {
       this.$emit('save', {
         storyboardId: this.storyboard.id,

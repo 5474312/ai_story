@@ -3,6 +3,7 @@
     class="image-gen-node"
     :class="`status-${status}`"
     :style="nodeStyle"
+    @dblclick="handleNodeDoubleClick"
   >
     <div class="node-header">
       <div class="header-left">
@@ -117,6 +118,21 @@ export default {
     }
   },
   methods: {
+    handleNodeDoubleClick(event) {
+      if (this.shouldIgnoreNodeDoubleClick(event.target)) {
+        return;
+      }
+      this.$emit('node-dblclick');
+    },
+    shouldIgnoreNodeDoubleClick(target) {
+      if (!(target instanceof Element)) {
+        return false;
+      }
+
+      return Boolean(
+        target.closest('button, input, textarea, select, option, video, [contenteditable="true"], .prevent-canvas-wheel')
+      );
+    },
     handleImageLoad(event) {
       const target = event?.target;
       const width = Number(target?.naturalWidth);

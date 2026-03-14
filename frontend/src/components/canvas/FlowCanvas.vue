@@ -115,6 +115,43 @@ export default {
       this.fitAllNodes();
     },
 
+    focusNode(nodeKey) {
+      const wrapper = this.$refs.wrapper;
+      const node = this.nodes?.[nodeKey];
+
+      if (!wrapper || !node) {
+        return;
+      }
+
+      const container = wrapper.querySelector('.canvas-container');
+      if (!container) {
+        return;
+      }
+
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+
+      if (containerWidth === 0 || containerHeight === 0) {
+        return;
+      }
+
+      const nodeWidth = node.width || 240;
+      const nodeHeight = node.height || 160;
+      const focusPaddingX = containerWidth * 0.3;
+      const focusPaddingY = containerHeight * 0.28;
+      const focusScaleX = (containerWidth - focusPaddingX * 2) / nodeWidth;
+      const focusScaleY = (containerHeight - focusPaddingY * 2) / nodeHeight;
+      const targetScale = Math.max(
+        this.scale,
+        Math.max(1, Math.min(focusScaleX, focusScaleY))
+      );
+
+      this.scale = Math.max(this.minScale, Math.min(this.maxScale, targetScale));
+
+      this.translateX = (containerWidth / 2) - ((node.x + nodeWidth / 2) * this.scale);
+      this.translateY = (containerHeight / 2) - ((node.y + nodeHeight / 2) * this.scale);
+    },
+
     // 自动适配所有节点
     fitAllNodes() {
       const wrapper = this.$refs.wrapper;

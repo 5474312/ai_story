@@ -218,6 +218,7 @@
 
     <div class="canvas-wrapper">
       <flow-canvas
+        ref="flowCanvas"
         :connections="connections"
         :nodes="allNodePositions"
       >
@@ -235,6 +236,7 @@
         @execute="handleExecuteStage"
         @save="handleSaveStage"
         @storyboard-generated="$emit('storyboard-generated')"
+        @node-dblclick="focusCanvasNode('rewrite')"
       />
 
       <!-- 每个分镜及其子节点 -->
@@ -247,6 +249,7 @@
           :index="index"
           :position="calculateStoryboardPosition(index)"
           :asset-options="boundAssets"
+          @node-dblclick="focusCanvasNode(`storyboard-${index}`)"
           @save="handleSaveStoryboard"
         />
 
@@ -261,6 +264,7 @@
           :media-height="getStoryboardMediaDimensions(storyboard).height"
           :prompt="storyboard.image_prompt"
           :storyboard-id="storyboard.id"
+          @node-dblclick="focusCanvasNode(`image-${index}`)"
           @generate="handleGenerateImage"
           @media-loaded="handleImageMediaLoaded"
           @save="handleSaveStoryboard"
@@ -277,6 +281,7 @@
           :storyboard-id="storyboard.id"
           :camera-id="getCameraId(storyboard)"
           :can-generate="getImageStatus(storyboard) === 'completed'"
+          @node-dblclick="focusCanvasNode(`camera-${index}`)"
           @generate="handleGenerateCamera"
           @save="handleSaveCamera"
         />
@@ -293,6 +298,7 @@
           :media-height="getStoryboardMediaDimensions(storyboard).height"
           :storyboard-id="storyboard.id"
           :can-generate="getCameraStatus(storyboard) === 'completed'"
+          @node-dblclick="focusCanvasNode(`video-${index}`)"
           @generate="handleGenerateVideo"
         />
       </template>
@@ -1122,6 +1128,10 @@ export default {
         };
       }
       return null;
+    },
+
+    focusCanvasNode(nodeKey) {
+      this.$refs.flowCanvas?.focusNode(nodeKey);
     },
 
     handleExecuteStage({ stageType, inputData }) {

@@ -3,6 +3,7 @@
     class="camera-node"
     :class="`status-${status}`"
     :style="nodeStyle"
+    @dblclick="handleNodeDoubleClick"
   >
     <!-- 节点头部 -->
     <div class="node-header">
@@ -138,6 +139,21 @@ export default {
     }
   },
   methods: {
+    handleNodeDoubleClick(event) {
+      if (this.shouldIgnoreNodeDoubleClick(event.target)) {
+        return;
+      }
+      this.$emit('node-dblclick');
+    },
+    shouldIgnoreNodeDoubleClick(target) {
+      if (!(target instanceof Element)) {
+        return false;
+      }
+
+      return Boolean(
+        target.closest('button, input, textarea, select, option, video, [contenteditable="true"], .prevent-canvas-wheel')
+      );
+    },
     getMovementDescription(params) {
       return params?.description || params?.raw_text || '';
     },

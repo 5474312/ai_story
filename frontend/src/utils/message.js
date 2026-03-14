@@ -29,8 +29,16 @@ function showMessage(message, type = 'info', duration = 3000) {
 
   const messageEl = document.createElement('div');
   messageEl.className = `alert alert-${type} shadow-lg`;
+  const typeStyleMap = {
+    success: `
+      background: oklch(var(--p));
+      color: oklch(var(--pc));
+      border: 1px solid oklch(var(--p));
+    `,
+  };
   messageEl.style.cssText = `
     animation: slideIn 0.3s ease-out;
+    ${typeStyleMap[type] || ''}
   `;
 
   const iconMap = {
