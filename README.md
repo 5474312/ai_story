@@ -33,6 +33,7 @@ docker-compose exec backend python backend/manage.py createsuperuser
 
 ![视频生成](image-11.png)
 ![视频生成](image-12.png)
+![视频生成](image-13.png)
 ![视频生成](image-3.png)
 ![视频生成](image-4.png)
 ![视频生成](image-5.png)
