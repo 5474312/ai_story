@@ -13,17 +13,69 @@
         :aria-describedby="contentId"
         @click.stop
       >
-        <div class="confirm-dialog__accent" :class="`confirm-dialog__accent--${state.tone}`"></div>
+        <div
+          class="confirm-dialog__accent"
+          :class="`confirm-dialog__accent--${state.tone}`"
+        />
         <div class="confirm-dialog__body">
           <div class="confirm-dialog__header">
-            <div class="confirm-dialog__icon" :class="`confirm-dialog__icon--${state.tone}`" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.65 18h16.7a1 1 0 00.86-1.5l-7.5-13a1 1 0 00-1.72 0z" />
+            <div
+              class="confirm-dialog__icon"
+              :class="`confirm-dialog__icon--${state.tone}`"
+              aria-hidden="true"
+            >
+              <svg
+                v-if="state.tone === 'success'"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 12.75l2.25 2.25L15 9.75m6 2.25a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <svg
+                v-else-if="state.tone === 'info' || state.tone === 'primary'"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M11.25 11.25l.041-.02a.75.75 0 011.09.664v4.856a.75.75 0 001.5 0v-4.856a2.25 2.25 0 00-3.27-1.992l-.041.02a.75.75 0 00.68 1.336zM12 7.5h.008v.008H12V7.5z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <svg
+                v-else
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.65 18h16.7a1 1 0 00.86-1.5l-7.5-13a1 1 0 00-1.72 0z"
+                />
               </svg>
             </div>
             <div class="confirm-dialog__copy">
-              <h3 :id="titleId" class="confirm-dialog__title">{{ state.title }}</h3>
-              <p :id="contentId" class="confirm-dialog__message">{{ state.message }}</p>
+              <h3 :id="titleId" class="confirm-dialog__title">
+                {{ state.title }}
+              </h3>
+              <p :id="contentId" class="confirm-dialog__message">
+                {{ state.message }}
+              </p>
             </div>
           </div>
 
@@ -132,12 +184,22 @@ export default {
   background: linear-gradient(90deg, #38bdf8, #14b8a6);
 }
 
-.confirm-dialog__accent--danger {
-  background: linear-gradient(90deg, #fb7185, #f97316);
+.confirm-dialog__accent--primary,
+.confirm-dialog__accent--info {
+  background: linear-gradient(90deg, #38bdf8, #14b8a6);
+}
+
+.confirm-dialog__accent--success {
+  background: linear-gradient(90deg, #34d399, #10b981);
 }
 
 .confirm-dialog__accent--warning {
   background: linear-gradient(90deg, #f59e0b, #f97316);
+}
+
+.confirm-dialog__accent--error,
+.confirm-dialog__accent--danger {
+  background: linear-gradient(90deg, #fb7185, #ef4444);
 }
 
 .confirm-dialog__body {
@@ -158,8 +220,6 @@ export default {
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  background: rgba(20, 184, 166, 0.12);
-  color: #0f766e;
 }
 
 .confirm-dialog__icon svg {
@@ -167,14 +227,26 @@ export default {
   height: 1.35rem;
 }
 
-.confirm-dialog__icon--danger {
-  background: rgba(248, 113, 113, 0.14);
-  color: #dc2626;
+.confirm-dialog__icon--primary,
+.confirm-dialog__icon--info {
+  background: rgba(20, 184, 166, 0.12);
+  color: #0f766e;
+}
+
+.confirm-dialog__icon--success {
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
 }
 
 .confirm-dialog__icon--warning {
   background: rgba(245, 158, 11, 0.16);
   color: #d97706;
+}
+
+.confirm-dialog__icon--error,
+.confirm-dialog__icon--danger {
+  background: rgba(248, 113, 113, 0.14);
+  color: #dc2626;
 }
 
 .confirm-dialog__copy {
@@ -232,10 +304,17 @@ export default {
   box-shadow: 0 10px 24px rgba(20, 184, 166, 0.08);
 }
 
-.confirm-dialog__button--primary {
+.confirm-dialog__button--primary,
+.confirm-dialog__button--info {
   background: linear-gradient(135deg, #22d3ee, #14b8a6);
   color: #f8fafc;
   box-shadow: 0 14px 30px rgba(20, 184, 166, 0.22);
+}
+
+.confirm-dialog__button--success {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  color: #ecfdf5;
+  box-shadow: 0 14px 30px rgba(16, 185, 129, 0.22);
 }
 
 .confirm-dialog__button--warning {
@@ -244,6 +323,7 @@ export default {
   box-shadow: 0 14px 30px rgba(249, 115, 22, 0.22);
 }
 
+.confirm-dialog__button--error,
 .confirm-dialog__button--danger {
   background: linear-gradient(135deg, #fb7185, #ef4444);
   color: #fff1f2;

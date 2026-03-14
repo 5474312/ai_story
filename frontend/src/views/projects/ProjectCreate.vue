@@ -536,7 +536,7 @@ export default {
         this.$router.push({ name: 'ProjectDetail', params: { id: project.id } });
       } catch (error) {
         const errorMsg = error.response?.data?.message || error.response?.data?.detail || error.message || '创建分集失败';
-        await this.$alert(errorMsg, '创建失败', { tone: 'warning' });
+        await this.$alert(errorMsg, '创建失败', { tone: 'error' });
       } finally {
         this.submitting = false;
       }

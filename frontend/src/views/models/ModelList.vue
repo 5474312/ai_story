@@ -213,13 +213,13 @@ export default {
         })
 
         if (result.success) {
-          await this.$alert(`测试成功! 延迟: ${result.latency_ms}ms`, '测试结果')
+          await this.$alert(`测试成功! 延迟: ${result.latency_ms}ms`, '测试结果', { tone: 'success' })
         } else {
-          await this.$alert(`测试失败: ${result.error}`, '测试结果', { tone: 'warning' })
+          await this.$alert(`测试失败: ${result.error}`, '测试结果', { tone: 'error' })
         }
       } catch (error) {
         console.error('测试连接失败:', error)
-        await this.$alert('测试连接失败', '测试结果', { tone: 'warning' })
+        await this.$alert('测试连接失败', '测试结果', { tone: 'error' })
       } finally {
         this.testingProviderId = null
       }
@@ -238,13 +238,13 @@ export default {
 
       try {
         await this.deleteProvider(provider.id)
-        await this.$alert('删除成功', '操作完成')
+        await this.$alert('删除成功', '操作完成', { tone: 'success' })
       } catch (error) {
         console.error('删除模型失败:', error)
         await this.$alert(
           error.response?.data?.error || '删除失败,该模型可能正在被项目使用',
           '删除失败',
-          { tone: 'warning' }
+          { tone: 'error' }
         )
       }
     },

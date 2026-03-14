@@ -76,6 +76,7 @@ function alert(message, title = '提示', options = {}) {
   const config = normalizeConfig(message, title, {
     confirmText: '知道了',
     showCancel: false,
+    tone: 'info',
     ...options,
   });
 
