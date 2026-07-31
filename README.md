@@ -23,12 +23,13 @@ AI Story 是一个基于人工智能的故事视频自动化生成平台。只�
 ## 大模型提供商
 
 <div>
-  <a href="https://api.aiflow321.cn/register?aff=vwHJ" target="_blank" rel="noopener noreferrer">
-    <img src="/lumina.png" width="600" alt="Lumina AI" style="max-width: 100%;">
+  <a href="https://5gtoken.com/login?tab=register&aff=ggA3" target="_blank" rel="noopener noreferrer">
+    <img src="/5g.png" width="600" alt="Lumina AI" style="max-width: 100%;">
   </a>
 </div>
 
-[Lumina](https://api.aiflow321.cn/register?aff=vwHJ) Lumina 是一个企业级 API 中转平台，深度聚合 GPT、Claude、Gemini、Sora、Seedance 等全球主流大模型 API，平台提供极具竞争力的价格和企业级稳定性
+[Lumina](https://5gtoken.com/login?tab=register&aff=ggA3) AI 超级工厂聚合多款模型，驱动无限可能,一站式 AI 模型 API 聚合平台，兼容 OpenAI 接口标准，
+支持 GPT-5 / Claude 4.7 / DeepSeek / Gemini 等百余款主流模型
 
 ## 🚀 快速开始
 
