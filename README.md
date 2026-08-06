@@ -23,12 +23,12 @@ AI Story 是一个基于人工智能的故事视频自动化生成平台。只�
 ## 大模型提供商
 
 <div>
-  <a href="https://5gtoken.com/login?tab=register&aff=ggA3" target="_blank" rel="noopener noreferrer">
+  <a href="https://5gtoken.com/login?dist=0494ce61a85d0e25" target="_blank" rel="noopener noreferrer">
     <img src="/5g.png" width="600" alt="91token/5gtoken" style="max-width: 100%;">
   </a>
 </div>
 
-[91token/5gtoken](https://5gtoken.com/login?tab=register&aff=ggA3) AI 超级工厂聚合多款模型，驱动无限可能,一站式 AI 模型 API 聚合平台，兼容 OpenAI 接口标准，
+[91token/5gtoken](https://5gtoken.com/login?dist=0494ce61a85d0e25) AI 超级工厂聚合多款模型，驱动无限可能,一站式 AI 模型 API 聚合平台，兼容 OpenAI 接口标准，
 支持 GPT-5 / Claude 4.7 / DeepSeek / Gemini 等百余款主流模型
 
 ## 🚀 快速开始
