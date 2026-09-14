@@ -365,6 +365,7 @@ class ImagesGenerationsProxyView(APIView):
                         strength=context['strength'],
                         width=context['width'],
                         height=context['height'],
+                        seed=context['seed'],
                         edit_mode=context['mode'] or 'img2img',
                         extra=context['extra'],
                     ),

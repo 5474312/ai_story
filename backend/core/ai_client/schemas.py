@@ -87,6 +87,7 @@ class ImageEditRequest:
     strength: float = 0.35
     width: Optional[int] = None
     height: Optional[int] = None
+    seed: Optional[int] = None
     edit_mode: str = "img2img"
     extra: Dict[str, Any] = field(default_factory=dict)
 

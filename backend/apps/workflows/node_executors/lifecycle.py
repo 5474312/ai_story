@@ -64,6 +64,8 @@ def finalize_success(
             update_fields=['status', 'output_payload', 'normalized_output', 'error_message', 'completed_at', 'updated_at']
         )
         create_node_run_event(node_run, 'run_completed', {'has_output': bool(normalized_output or output_payload)})
+        from ..candidate_services import create_candidates_for_run
+        create_candidates_for_run(node_run)
         handle_node_run_completed(node_run, latest_output=normalized_output)
         if node_run.workflow_run_id:
             launch_ready_node_runs(str(node_run.workflow_run_id))

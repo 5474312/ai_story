@@ -135,6 +135,7 @@ def execute_image_generation(input_payload: Dict[str, Any], user_id=None) -> Dic
                 strength=context['strength'],
                 width=context['width'],
                 height=context['height'],
+                seed=context['seed'],
                 edit_mode=context['mode'] or 'img2img',
                 extra=context['extra'],
             ),

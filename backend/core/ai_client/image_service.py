@@ -45,6 +45,7 @@ class ImageGenerationService:
             strength=request.strength,
             width=request.width or 1024,
             height=request.height or 1024,
+            seed=request.seed,
             negative_prompt=request.negative_prompt,
             edit_mode=request.edit_mode,
             source_images=request.source_images,

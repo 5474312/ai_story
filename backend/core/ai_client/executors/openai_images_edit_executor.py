@@ -41,6 +41,7 @@ class OpenAIImagesEditExecutor(BaseImageEditClient):
             strength=strength,
             width=width,
             height=height,
+            seed=kwargs.get('seed'),
             edit_mode=kwargs.get('edit_mode', 'img2img'),
             extra={
                 'steps': kwargs.get('steps'),
@@ -79,6 +80,8 @@ class OpenAIImagesEditExecutor(BaseImageEditClient):
             payload['mask_url'] = request.mask_image
         if request.negative_prompt:
             payload['negative_prompt'] = request.negative_prompt
+        if request.seed is not None:
+            payload['seed'] = request.seed
         if request.extra.get('steps'):
             payload['steps'] = request.extra['steps']
         if request.extra.get('response_format'):
