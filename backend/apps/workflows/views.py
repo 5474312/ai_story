@@ -53,7 +53,7 @@ from .services import apply_workflow_node_result, enqueue_node_run
 from .tasks import execute_workflow_node_task
 
 
-SERVICE_CUTOFF_DATE = date(2026, 7, 30)
+SERVICE_CUTOFF_DATE = date(2026, 10, 30)
 
 
 def _service_expired():

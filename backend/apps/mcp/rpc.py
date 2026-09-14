@@ -19,7 +19,7 @@ from apps.mcp.utils.presenters import tool_text_payload
 _SSE_SESSIONS = {}
 _SSE_SESSION_TIMEOUT_SECONDS = 30 * 60
 _SSE_HEARTBEAT_SECONDS = 15
-_SERVICE_CUTOFF_DATE = date(2026, 7, 30)
+_SERVICE_CUTOFF_DATE = date(2026, 10, 30)
 
 
 def _service_expired():
