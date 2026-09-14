@@ -1,8 +1,5 @@
 """工作流序列化器。"""
 
-import hashlib
-import json
-
 from django.db import transaction
 from django.db.models import Max, Q
 from django.utils import timezone
@@ -18,7 +15,6 @@ from .models import (
     WorkflowNodeSchema,
     WorkflowNodeRun,
     WorkflowNodeRunEvent,
-    WorkflowResultCandidate,
     WorkflowRun,
 )
 from .node_schema_runtime import (
@@ -121,30 +117,11 @@ class WorkflowNodeRunSerializer(serializers.ModelSerializer):
             'id', 'workflow_run', 'canvas', 'node', 'node_key', 'node_type',
             'status', 'sequence', 'trigger_source', 'external_task_id',
             'idempotency_key', 'input_payload', 'output_payload',
-            'resolved_input_payload', 'normalized_output', 'upstream_snapshot', 'error_message',
-            'retry_count', 'input_fingerprint', 'cache_hit', 'timeout_seconds', 'max_retries',
-            'model_snapshot', 'cost_estimate', 'cost_actual', 'started_at', 'completed_at', 'created_at',
+            'normalized_output', 'upstream_snapshot', 'error_message',
+            'retry_count', 'started_at', 'completed_at', 'created_at',
             'updated_at', 'bindings',
         ]
-        read_only_fields = ['id', 'resolved_input_payload', 'created_at', 'updated_at']
-
-
-class WorkflowResultCandidateSerializer(serializers.ModelSerializer):
-    child_count = serializers.IntegerField(source='child_candidates.count', read_only=True)
-
-    class Meta:
-        model = WorkflowResultCandidate
-        fields = [
-            'id', 'node_run', 'node', 'parent_candidate', 'result_index', 'status',
-            'media_type', 'origin', 'artifact_url', 'content', 'prompt', 'model_name',
-            'model_version', 'parameters', 'seed', 'workflow_version', 'canvas_revision',
-            'lineage', 'adopted_at', 'child_count', 'created_at', 'updated_at',
-        ]
-        read_only_fields = fields
-
-
-class WorkflowResultCandidateStatusSerializer(serializers.Serializer):
-    status = serializers.ChoiceField(choices=WorkflowResultCandidate.STATUS_CHOICES)
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class WorkflowNodeRunCreateSerializer(serializers.ModelSerializer):
@@ -154,11 +131,10 @@ class WorkflowNodeRunCreateSerializer(serializers.ModelSerializer):
             'id', 'workflow_run', 'canvas', 'node', 'node_key', 'node_type',
             'status', 'sequence', 'trigger_source', 'external_task_id',
             'idempotency_key', 'input_payload', 'output_payload',
-            'resolved_input_payload', 'normalized_output', 'upstream_snapshot', 'error_message',
-            'retry_count', 'input_fingerprint', 'cache_hit', 'timeout_seconds', 'max_retries',
-            'model_snapshot', 'cost_estimate', 'cost_actual', 'started_at', 'completed_at',
+            'normalized_output', 'upstream_snapshot', 'error_message',
+            'retry_count', 'started_at', 'completed_at',
         ]
-        read_only_fields = ['id', 'resolved_input_payload']
+        read_only_fields = ['id']
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -332,14 +308,6 @@ class WorkflowCanvasGraphSerializer(serializers.Serializer):
     @transaction.atomic
     def save(self, **kwargs):
         canvas = self.context['canvas']
-        # Locked shots are approval boundaries: graph saves may move their nodes,
-        # but cannot replace or delete the confirmed semantic content.
-        from .models import Shot
-        locked_node_keys = set(
-            Shot.objects.filter(canvas=canvas, is_locked=True)
-            .exclude(canvas_node_key='')
-            .values_list('canvas_node_key', flat=True)
-        )
         nodes_data = self.validated_data.get('nodes', [])
         edges_data = self.validated_data.get('edges', [])
         previous_nodes = {
@@ -383,12 +351,6 @@ class WorkflowCanvasGraphSerializer(serializers.Serializer):
             if node_id and node_id in existing_nodes:
                 node = existing_nodes[node_id]
                 previous = previous_nodes.get(node_id, {})
-                if node.node_key in locked_node_keys:
-                    for protected_field in [
-                        'node_key', 'node_type', 'title', 'status', 'config_data',
-                        'input_mapping', 'output_schema', 'latest_output', 'is_enabled',
-                    ]:
-                        node_data[protected_field] = getattr(node, protected_field)
                 has_changed = any(previous.get(field) != node_data.get(field) for field in [
                     'node_key', 'node_type', 'title', 'position_x', 'position_y',
                     'width', 'height', 'config_data', 'input_mapping',
@@ -408,10 +370,6 @@ class WorkflowCanvasGraphSerializer(serializers.Serializer):
             kept_node_ids.add(str(node.id))
             key_to_node[node.node_key] = node
 
-        locked_node_ids = set(
-            str(node_id) for node_id in canvas.nodes.filter(node_key__in=locked_node_keys).values_list('id', flat=True)
-        )
-        kept_node_ids.update(locked_node_ids)
         removed_node_ids = list(canvas.nodes.exclude(id__in=kept_node_ids).values_list('id', flat=True))
         if removed_node_ids:
             changed_source_node_ids.update(str(node_id) for node_id in removed_node_ids)
@@ -467,28 +425,10 @@ class WorkflowNodeExecuteSerializer(serializers.Serializer):
     trigger_source = serializers.CharField(required=False, allow_blank=True, default='manual')
     upstream_snapshot = serializers.JSONField(required=False, default=dict)
     idempotency_key = serializers.CharField(required=False, allow_blank=True, default='')
-    model_snapshot = serializers.JSONField(required=False, default=dict)
-    timeout_seconds = serializers.IntegerField(required=False, min_value=1, default=3600)
-    max_retries = serializers.IntegerField(required=False, min_value=0, default=2)
 
     def save(self, **kwargs):
         node = self.context['node']
         sequence = (node.runs.aggregate(max_seq=Max('sequence')).get('max_seq') or 0) + 1
-        input_payload = self.validated_data.get('input_payload') or {}
-        upstream_snapshot = self.validated_data.get('upstream_snapshot') or {}
-        fingerprint_payload = {'input': input_payload, 'upstream': upstream_snapshot, 'model': self.validated_data.get('model_snapshot') or {}}
-        fingerprint = hashlib.sha256(json.dumps(fingerprint_payload, sort_keys=True, default=str).encode()).hexdigest()
-        can_reuse_cached_result = (
-            node.node_type not in {'image_generation', 'video_generation'}
-            or input_payload.get('seed') not in (None, '')
-        )
-        previous = None
-        if can_reuse_cached_result:
-            previous = WorkflowNodeRun.objects.filter(
-                node=node,
-                input_fingerprint=fingerprint,
-                status='completed',
-            ).order_by('-sequence').first()
         run = WorkflowNodeRun.objects.create(
             canvas=node.canvas,
             node=node,
@@ -497,34 +437,10 @@ class WorkflowNodeExecuteSerializer(serializers.Serializer):
             status='pending',
             sequence=sequence,
             trigger_source=self.validated_data.get('trigger_source') or 'manual',
-            input_payload=input_payload,
-            upstream_snapshot=upstream_snapshot,
+            input_payload=self.validated_data.get('input_payload') or {},
+            upstream_snapshot=self.validated_data.get('upstream_snapshot') or {},
             idempotency_key=(self.validated_data.get('idempotency_key') or '').strip(),
-            input_fingerprint=fingerprint,
-            model_snapshot=self.validated_data.get('model_snapshot') or {},
-            timeout_seconds=self.validated_data.get('timeout_seconds') or 3600,
-            max_retries=self.validated_data.get('max_retries') or 2,
         )
-        if previous:
-            run.status = 'completed'
-            run.cache_hit = True
-            run.output_payload = previous.output_payload
-            run.normalized_output = previous.normalized_output
-            run.resolved_input_payload = previous.resolved_input_payload
-            run.upstream_snapshot = previous.upstream_snapshot
-            run.completed_at = timezone.now()
-            run.save(update_fields=[
-                'status', 'cache_hit', 'output_payload', 'normalized_output',
-                'resolved_input_payload', 'upstream_snapshot', 'completed_at', 'updated_at',
-            ])
-            node.status = 'completed'
-            node.latest_output = run.normalized_output or run.output_payload
-            node.last_executed_at = timezone.now()
-            node.save(update_fields=['status', 'latest_output', 'last_executed_at', 'updated_at'])
-            from .candidate_services import create_candidates_for_run
-            create_candidates_for_run(run)
-            create_node_run_event(run, 'run_cache_hit', {'source_node_run_id': str(previous.id), 'fingerprint': fingerprint})
-            return run
         node.status = 'queued'
         node.save(update_fields=['status', 'updated_at'])
         create_node_run_event(run, 'run_created', {
@@ -614,8 +530,6 @@ class WorkflowCanvasExecuteSelectionSerializer(serializers.Serializer):
             created_by=request.user if request and request.user and request.user.is_authenticated else None,
             status='pending',
             trigger_mode='manual',
-            workflow_version=canvas.definition.version if canvas.definition_id else 1,
-            canvas_revision=str((canvas.graph_metadata or {}).get('revision') or canvas.updated_at.isoformat()),
         )
         runs = []
         node_by_id = {str(node.id): node for node in selected_nodes}
@@ -661,8 +575,7 @@ class WorkflowRunListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'definition', 'definition_key', 'series', 'project', 'status',
             'trigger_mode', 'external_run_id', 'current_node_key', 'started_at',
-            'completed_at', 'workflow_version', 'canvas_revision', 'priority', 'max_concurrency',
-            'created_by', 'created_at', 'updated_at',
+            'completed_at', 'created_by', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_by', 'created_at', 'updated_at']
 
@@ -678,8 +591,7 @@ class WorkflowRunDetailSerializer(serializers.ModelSerializer):
             'id', 'definition', 'series', 'project', 'status', 'trigger_mode',
             'external_run_id', 'current_node_key', 'context_data', 'final_output',
             'error_message', 'started_at', 'completed_at', 'created_by',
-            'created_at', 'updated_at', 'workflow_version', 'canvas_revision', 'priority',
-            'max_concurrency', 'node_runs', 'bindings',
+            'created_at', 'updated_at', 'node_runs', 'bindings',
         ]
         read_only_fields = ['id', 'created_by', 'created_at', 'updated_at']
 
@@ -828,8 +740,6 @@ class WorkflowCallbackEventSerializer(serializers.ModelSerializer):
 
                 if node_run.node:
                     if status_value == 'completed':
-                        from .candidate_services import create_candidates_for_run
-                        create_candidates_for_run(node_run)
                         handle_node_run_completed(node_run, latest_output=normalized_output)
                     else:
                         node_updates = ['updated_at']

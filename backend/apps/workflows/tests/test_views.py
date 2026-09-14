@@ -14,12 +14,11 @@ from core.ai_client.base import AIResponse
 
 from apps.content.models import ContentRewrite, GeneratedImage, Storyboard
 from apps.projects.models import Project, ProjectStage, Series
-from apps.workflows.node_schema_runtime import prepare_node_run_input_payload, resolve_node_schema
+from apps.workflows.node_schema_runtime import prepare_node_run_input_payload
 from apps.workflows.node_executors.execute_image_generation import execute_image_generation
 from apps.workflows.node_executors.execute_rewrite import execute_rewrite
 from apps.workflows.node_executors.execute_video_generation import execute_video_generation
 from apps.workflows.node_executors.lifecycle import finalize_success
-from apps.workflows.tasks import _dispatch_node_execution
 from apps.workflows.models import (
     WorkflowCallbackEvent,
     WorkflowCanvas,
@@ -28,7 +27,6 @@ from apps.workflows.models import (
     WorkflowNodeRun,
     WorkflowNodeRunEvent,
     WorkflowNodeSchema,
-    WorkflowResultCandidate,
     WorkflowRun,
 )
 
@@ -1332,14 +1330,12 @@ class WorkflowImageInputRuntimeTestCase(APITestCase):
                 result = execute_image_generation({
                     'prompt': '基于参考图生成',
                     'model': 'image-edit-model',
-                    'seed': 12345,
                     'mode': 'img2img',
                     'source_image_url': '/api/v1/content/storage/image/2026-06-05/source.png',
                 })
 
         request = mock_edit.call_args.args[1]
         self.assertTrue(request.source_images[0].startswith('data:image/png;base64,'))
-        self.assertEqual(request.seed, 12345)
         self.assertEqual(
             result['normalized_output']['source_image_url'],
             '/api/v1/content/storage/image/2026-06-05/source.png',
@@ -1518,328 +1514,6 @@ class WorkflowNodeSchemaRuntimeTestCase(APITestCase):
             node_run=self.node_run,
             event_type='schema_materialized',
         ).exists())
-
-
-@patch('apps.workflows.views._service_expired', return_value=False)
-class WorkflowResultCandidateAPITestCase(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='candidate-user', password='secret123')
-        self.client.force_authenticate(self.user)
-        self.series = Series.objects.create(name='候选作品', description='desc', user=self.user)
-        self.project = Project.objects.create(
-            user=self.user,
-            series=self.series,
-            episode_number=1,
-            sort_order=1,
-            episode_title='第1集',
-            name='第1集',
-            original_topic='候选测试',
-        )
-        initialize_project(self.project)
-        self.canvas = WorkflowCanvas.objects.create(
-            name='候选画板', project=self.project, series=self.series,
-            created_by=self.user, status='active', graph_metadata={'revision': 'canvas-r7'},
-        )
-        self.workflow_run = WorkflowRun.objects.create(
-            project=self.project, series=self.series, created_by=self.user,
-            status='running', workflow_version=7, canvas_revision='canvas-r7',
-        )
-        self.node = WorkflowNode.objects.create(
-            canvas=self.canvas, node_key='image_node', node_type='image_generation',
-            title='图片生成', status='running',
-        )
-        self.node_run = WorkflowNodeRun.objects.create(
-            workflow_run=self.workflow_run, canvas=self.canvas, node=self.node,
-            node_key='image_node', node_type='image_generation', status='running',
-            input_payload={
-                'prompt': '雨夜霓虹街道', 'model': 'image-pro', 'seed': 31415,
-                'sample_count': 2, 'aspect_ratio': '16:9',
-            },
-            resolved_input_payload={
-                'prompt': '雨夜霓虹街道', 'model': 'image-pro', 'seed': 31415,
-                'sample_count': 2, 'aspect_ratio': '16:9',
-                'source_images': ['https://cdn.example.com/source.png'],
-                '__node_schema': {
-                    'key': 'image_schema_v7',
-                    'name': '图片生成 v7',
-                    'description': '',
-                    'system_prompt': '冻结的 v7 Prompt',
-                    'schema_config': {'output_schema': {'output_type': 'single'}},
-                    'ui_config': {},
-                },
-            },
-            upstream_snapshot={
-                'materials': [{'type': 'image', 'url': 'https://cdn.example.com/source.png'}],
-                'prompt_node_run_id': 'prompt-run-1',
-            },
-            model_snapshot={'model_name': 'image-pro', 'version': '2026-08-15'},
-        )
-
-    def test_completed_run_creates_multiple_traceable_candidates(self, _mock_expired):
-        finalize_success(
-            str(self.node_run.id),
-            output_payload={
-                'model': 'image-pro',
-                'data': [
-                    {'url': 'https://cdn.example.com/a.png'},
-                    {'url': 'https://cdn.example.com/b.png'},
-                ],
-            },
-            normalized_output={
-                'imageUrl': 'https://cdn.example.com/a.png',
-                'image_url': 'https://cdn.example.com/a.png',
-                'prompt': '雨夜霓虹街道',
-                'model': 'image-pro',
-            },
-        )
-
-        candidates = list(WorkflowResultCandidate.objects.filter(node_run=self.node_run).order_by('result_index'))
-        self.assertEqual(len(candidates), 2)
-        self.assertEqual(candidates[1].artifact_url, 'https://cdn.example.com/b.png')
-        self.assertEqual(candidates[1].content['image_url'], 'https://cdn.example.com/b.png')
-        self.assertEqual(candidates[0].seed, 31415)
-        self.assertEqual(candidates[0].model_version, '2026-08-15')
-        self.assertEqual(candidates[0].workflow_version, 7)
-        self.assertEqual(candidates[0].lineage['upstream']['prompt_node_run_id'], 'prompt-run-1')
-        self.assertEqual(candidates[0].lineage['schema_version'], 1)
-        self.assertEqual(candidates[0].lineage['stages']['prompt']['text'], '雨夜霓虹街道')
-        self.assertEqual(candidates[0].lineage['stages']['model']['version'], '2026-08-15')
-        self.assertEqual(
-            candidates[0].lineage['stages']['output']['artifact_url'],
-            'https://cdn.example.com/a.png',
-        )
-        material_urls = {
-            item.get('url') for item in candidates[0].lineage['stages']['materials']
-        }
-        self.assertIn('https://cdn.example.com/source.png', material_urls)
-
-    @patch('apps.workflows.tasks.execute_image_generation')
-    def test_dispatch_persists_effective_input_snapshot(self, mock_execute, _mock_expired):
-        self.node_run.resolved_input_payload = {}
-        self.node_run.save(update_fields=['resolved_input_payload'])
-        mock_execute.return_value = {'output_payload': {}, 'normalized_output': {}}
-
-        _dispatch_node_execution(self.node_run)
-
-        self.node_run.refresh_from_db()
-        self.assertEqual(self.node_run.resolved_input_payload['prompt'], '雨夜霓虹街道')
-        self.assertEqual(self.node_run.resolved_input_payload['seed'], 31415)
-
-    @patch('apps.workflows.tasks.execute_image_generation')
-    def test_dispatch_generates_and_reuses_seed_when_request_omits_it(self, mock_execute, _mock_expired):
-        seedless_node = WorkflowNode.objects.create(
-            canvas=self.canvas, node_key='seedless_image', node_type='image_generation',
-            title='自动种子图片', status='queued',
-        )
-        seedless_run = WorkflowNodeRun.objects.create(
-            canvas=self.canvas, node=seedless_node, node_key='seedless_image',
-            node_type='image_generation', status='queued', sequence=1,
-            input_payload={'prompt': '自动生成种子', 'model': 'image-pro'},
-        )
-        mock_execute.return_value = {'output_payload': {}, 'normalized_output': {}}
-
-        _dispatch_node_execution(seedless_run)
-
-        seedless_run.refresh_from_db()
-        generated_seed = seedless_run.resolved_input_payload['seed']
-        self.assertIsInstance(generated_seed, int)
-        self.assertGreater(generated_seed, 0)
-        self.assertEqual(prepare_node_run_input_payload(seedless_run)['seed'], generated_seed)
-
-    @patch('apps.workflows.tasks.execute_video_generation')
-    def test_dispatch_freezes_upstream_candidate_matching_effective_artifact(self, mock_execute, _mock_expired):
-        finalize_success(
-            str(self.node_run.id),
-            output_payload={'data': [
-                {'url': 'https://cdn.example.com/a.png'},
-                {'url': 'https://cdn.example.com/b.png'},
-            ]},
-            normalized_output={'image_url': 'https://cdn.example.com/a.png', 'model': 'image-pro'},
-        )
-        first, second = list(
-            WorkflowResultCandidate.objects.filter(node_run=self.node_run).order_by('result_index')
-        )
-        second.status = 'adopted'
-        second.save(update_fields=['status'])
-        video_node = WorkflowNode.objects.create(
-            canvas=self.canvas, node_key='trace_video', node_type='video_generation',
-            title='血缘视频', status='queued',
-        )
-        WorkflowEdge.objects.create(
-            canvas=self.canvas, edge_key='trace-video-edge',
-            source_node=self.node, target_node=video_node,
-        )
-        video_run = WorkflowNodeRun.objects.create(
-            workflow_run=self.workflow_run, canvas=self.canvas, node=video_node,
-            node_key='trace_video', node_type='video_generation', status='queued', sequence=1,
-            input_payload={
-                'prompt': '推进镜头',
-                'image_urls': ['https://cdn.example.com/a.png'],
-            },
-        )
-        mock_execute.return_value = {'output_payload': {}, 'normalized_output': {}}
-
-        _dispatch_node_execution(video_run)
-
-        video_run.refresh_from_db()
-        frozen = video_run.upstream_snapshot['upstream_candidates']
-        self.assertEqual(len(frozen), 1)
-        self.assertEqual(frozen[0]['candidate_id'], str(first.id))
-        self.assertEqual(frozen[0]['artifact_url'], 'https://cdn.example.com/a.png')
-
-    def test_video_candidate_lineage_records_intermediate_frames(self, _mock_expired):
-        video_node = WorkflowNode.objects.create(
-            canvas=self.canvas, node_key='video_node', node_type='video_generation',
-            title='视频生成', status='running',
-        )
-        video_run = WorkflowNodeRun.objects.create(
-            workflow_run=self.workflow_run, canvas=self.canvas, node=video_node,
-            node_key='video_node', node_type='video_generation', status='running',
-            sequence=1,
-            input_payload={'prompt': '镜头向前推进', 'model': 'video-pro', 'seed': 88},
-            resolved_input_payload={
-                'prompt': '镜头向前推进', 'model': 'video-pro', 'seed': 88,
-                'image_urls': [
-                    'https://cdn.example.com/first-frame.png',
-                    'https://cdn.example.com/last-frame.png',
-                ],
-            },
-            model_snapshot={'model_name': 'video-pro', 'version': 'v3'},
-        )
-
-        finalize_success(
-            str(video_run.id),
-            output_payload={'data': [{'url': 'https://cdn.example.com/result.mp4', 'seed': 99}]},
-            normalized_output={
-                'video_url': 'https://cdn.example.com/result.mp4',
-                'model': 'video-pro',
-            },
-        )
-
-        candidate = WorkflowResultCandidate.objects.get(node_run=video_run)
-        self.assertEqual(candidate.seed, 99)
-        self.assertEqual(candidate.parameters['seed'], 99)
-        frame_urls = {
-            item.get('url') for item in candidate.lineage['stages']['intermediate_frames']
-        }
-        self.assertEqual(frame_urls, {
-            'https://cdn.example.com/first-frame.png',
-            'https://cdn.example.com/last-frame.png',
-        })
-        self.assertEqual(candidate.lineage['stages']['output'], {
-            'media_type': 'video',
-            'artifact_url': 'https://cdn.example.com/result.mp4',
-            'result_index': 0,
-        })
-
-    def test_review_and_restore_keep_history(self, _mock_expired):
-        finalize_success(
-            str(self.node_run.id),
-            output_payload={'data': [
-                {'url': 'https://cdn.example.com/a.png'},
-                {'url': 'https://cdn.example.com/b.png'},
-            ]},
-            normalized_output={'image_url': 'https://cdn.example.com/a.png', 'model': 'image-pro'},
-        )
-        first, second = list(
-            WorkflowResultCandidate.objects.filter(node_run=self.node_run).order_by('result_index')
-        )
-
-        response = self.client.post(
-            reverse('workflow-result-candidate-review', args=[first.id]),
-            {'status': 'adopted'},
-            format='json',
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'adopted')
-        response = self.client.post(
-            reverse('workflow-result-candidate-review', args=[second.id]),
-            {'status': 'adopted'},
-            format='json',
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        first.refresh_from_db()
-        self.node.refresh_from_db()
-        self.assertEqual(first.status, 'alternate')
-        self.assertEqual(self.node.latest_output['image_url'], 'https://cdn.example.com/b.png')
-
-        before_count = WorkflowResultCandidate.objects.count()
-        response = self.client.post(
-            reverse('workflow-result-candidate-restore', args=[first.id]),
-            {},
-            format='json',
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(WorkflowResultCandidate.objects.count(), before_count + 1)
-        first.refresh_from_db()
-        self.assertEqual(first.status, 'alternate')
-        self.assertEqual(response.data['origin'], 'restored')
-        self.assertEqual(response.data['status'], 'adopted')
-        self.assertEqual(str(response.data['parent_candidate']), str(first.id))
-        self.assertEqual(response.data['lineage']['parent_candidate_id'], str(first.id))
-        self.assertEqual(response.data['lineage']['ancestry_candidate_ids'][0], str(first.id))
-
-    @patch('apps.workflows.views.execute_workflow_node_task.delay')
-    def test_reproduce_uses_locked_candidate_snapshot(self, mock_delay, _mock_expired):
-        mock_delay.return_value = SimpleNamespace(id='candidate-reproduction-task')
-        finalize_success(
-            str(self.node_run.id),
-            output_payload={'data': [{'url': 'https://cdn.example.com/a.png'}]},
-            normalized_output={'image_url': 'https://cdn.example.com/a.png', 'model': 'image-pro'},
-        )
-        candidate = WorkflowResultCandidate.objects.get(node_run=self.node_run)
-
-        response = self.client.post(
-            reverse('workflow-result-candidate-reproduce', args=[candidate.id]),
-            {},
-            format='json',
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        reproduced = WorkflowNodeRun.objects.get(id=response.data['id'])
-        self.assertNotEqual(reproduced.id, self.node_run.id)
-        self.assertEqual(reproduced.input_payload['seed'], 31415)
-        self.assertEqual(reproduced.input_payload['model_version'], '2026-08-15')
-        self.assertEqual(reproduced.input_payload['parent_candidate_id'], str(candidate.id))
-        self.assertEqual(reproduced.resolved_input_payload, reproduced.input_payload)
-        self.assertEqual(reproduced.model_snapshot['version'], '2026-08-15')
-        self.assertTrue(reproduced.model_snapshot['locked'])
-        self.assertEqual(reproduced.model_snapshot['workflow_version'], 7)
-        self.assertEqual(reproduced.model_snapshot['canvas_revision'], 'canvas-r7')
-
-        WorkflowNodeSchema.objects.create(
-            key='image_schema_v7', name='图片生成 current',
-            system_prompt='已经变化的当前 Prompt', schema_config={}, ui_config={}, is_active=True,
-        )
-        frozen_schema = resolve_node_schema(reproduced)
-        self.assertEqual(frozen_schema.name, '图片生成 v7')
-        self.assertEqual(frozen_schema.system_prompt, '冻结的 v7 Prompt')
-
-        upstream_node = WorkflowNode.objects.create(
-            canvas=self.canvas, node_key='changed_upstream', node_type='image_generation',
-            title='已变化的上游', status='completed',
-            latest_output={'image_url': 'https://cdn.example.com/changed.png'},
-        )
-        WorkflowEdge.objects.create(
-            canvas=self.canvas, edge_key='changed-upstream-edge',
-            source_node=upstream_node, target_node=self.node,
-        )
-        self.assertEqual(prepare_node_run_input_payload(reproduced), reproduced.resolved_input_payload)
-        self.assertNotIn('https://cdn.example.com/changed.png', str(reproduced.resolved_input_payload))
-
-        finalize_success(
-            str(reproduced.id),
-            output_payload={'data': [{'url': 'https://cdn.example.com/reproduced.png'}]},
-            normalized_output={'image_url': 'https://cdn.example.com/reproduced.png', 'model': 'image-pro'},
-        )
-        reproduced_candidate = WorkflowResultCandidate.objects.get(node_run=reproduced)
-        self.assertEqual(reproduced_candidate.parent_candidate_id, candidate.id)
-        self.assertEqual(reproduced_candidate.origin, 'branched')
-        self.assertEqual(reproduced_candidate.workflow_version, 7)
-        self.assertEqual(reproduced_candidate.canvas_revision, 'canvas-r7')
-        self.assertEqual(reproduced_candidate.lineage['branch_root_candidate_id'], str(candidate.id))
-        self.assertEqual(reproduced_candidate.lineage['ancestry_candidate_ids'], [str(candidate.id)])
-        mock_delay.assert_called_once_with(str(reproduced.id))
 
 
 class WorkflowRuntimeEventAPITestCase(APITestCase):

@@ -1,8 +1,6 @@
 """Runtime helpers for workflow node schema definitions."""
 
 from copy import deepcopy
-import secrets
-from types import SimpleNamespace
 from typing import Any, Dict, Iterable, List, Optional
 
 from django.db import transaction
@@ -118,11 +116,6 @@ def _payload_from_upstream_run(
     )
     if not upstream_run:
         return {}
-    adopted_candidate = upstream_run.candidates.filter(status='adopted').first()
-    run_candidate = upstream_run.candidates.order_by('result_index').first()
-    selected_candidate = adopted_candidate or run_candidate
-    if selected_candidate and isinstance(selected_candidate.content, dict):
-        return deepcopy(selected_candidate.content)
     normalized_output = _as_dict(upstream_run.normalized_output)
     output_payload = _as_dict(upstream_run.output_payload)
     if prefer_output_payload:
@@ -134,17 +127,6 @@ def _merge_upstream_image_inputs(node_run: WorkflowNodeRun, input_payload: Dict[
     if node_run.node_type not in {'image_generation', 'video_generation'}:
         return
     if not node_run.node_id or not node_run.canvas_id:
-        return
-
-    explicit_images = _as_list(
-        input_payload.get('image_urls')
-        or input_payload.get('images')
-        or input_payload.get('source_images')
-        or input_payload.get('image')
-        or input_payload.get('image_url')
-        or input_payload.get('source_image_url')
-    )
-    if explicit_images:
         return
 
     upstream_nodes = list(
@@ -284,19 +266,6 @@ def _schema_key_from_run(node_run: WorkflowNodeRun) -> str:
 
 
 def resolve_node_schema(node_run: WorkflowNodeRun) -> Optional[WorkflowNodeSchema]:
-    model_snapshot = _as_dict(node_run.model_snapshot)
-    if model_snapshot.get('locked'):
-        resolved_input = _as_dict(node_run.resolved_input_payload) or _as_dict(node_run.input_payload)
-        frozen_schema = _as_dict(resolved_input.get('__node_schema'))
-        if frozen_schema.get('key'):
-            return SimpleNamespace(
-                key=str(frozen_schema.get('key') or ''),
-                name=str(frozen_schema.get('name') or ''),
-                description=str(frozen_schema.get('description') or ''),
-                system_prompt=str(frozen_schema.get('system_prompt') or ''),
-                schema_config=deepcopy(_as_dict(frozen_schema.get('schema_config'))),
-                ui_config=deepcopy(_as_dict(frozen_schema.get('ui_config'))),
-            )
     schema_key = _schema_key_from_run(node_run)
     if not schema_key:
         return None
@@ -315,11 +284,6 @@ def serialize_node_schema(schema: WorkflowNodeSchema) -> Dict[str, Any]:
 
 
 def prepare_node_run_input_payload(node_run: WorkflowNodeRun) -> Dict[str, Any]:
-    frozen_input = _as_dict(node_run.resolved_input_payload)
-    if frozen_input:
-        return deepcopy(frozen_input)
-    if _as_dict(node_run.model_snapshot).get('locked'):
-        return deepcopy(_as_dict(node_run.input_payload))
     input_payload = deepcopy(_as_dict(node_run.input_payload))
     _merge_upstream_image_inputs(node_run, input_payload)
     _merge_upstream_text_inputs(node_run, input_payload)
@@ -327,8 +291,6 @@ def prepare_node_run_input_payload(node_run: WorkflowNodeRun) -> Dict[str, Any]:
     if schema:
         input_payload['__node_schema'] = serialize_node_schema(schema)
         input_payload.setdefault('node_schema_key', schema.key)
-    if node_run.node_type in {'image_generation', 'video_generation'} and input_payload.get('seed') in (None, ''):
-        input_payload['seed'] = secrets.randbelow(2 ** 31 - 1) + 1
     return input_payload
 
 

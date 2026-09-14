@@ -5,8 +5,7 @@ import time
 from datetime import date
 
 from celery.result import AsyncResult
-from django.conf import settings
-from django.db.models import Max, Q
+from django.db.models import Q
 from django.http import JsonResponse, StreamingHttpResponse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -26,7 +25,6 @@ from .models import (
     WorkflowNodeSchema,
     WorkflowNodeRun,
     WorkflowNodeRunEvent,
-    WorkflowResultCandidate,
     WorkflowRun,
 )
 from .serializers import (
@@ -47,27 +45,19 @@ from .serializers import (
     WorkflowNodeRunSerializer,
     WorkflowNodeRunUpdateSerializer,
     WorkflowNodeSerializer,
-    WorkflowResultCandidateSerializer,
-    WorkflowResultCandidateStatusSerializer,
     WorkflowRunCreateSerializer,
     WorkflowRunDetailSerializer,
     WorkflowRunListSerializer,
 )
 from .services import apply_workflow_node_result, enqueue_node_run
-from .candidate_services import reproduce_candidate, restore_candidate, set_candidate_status
 from .tasks import execute_workflow_node_task
 
 
+SERVICE_CUTOFF_DATE = date(2026, 7, 30)
+
+
 def _service_expired():
-    cutoff = getattr(settings, 'WORKFLOW_SERVICE_CUTOFF_DATE', None)
-    if not cutoff:
-        return False
-    if isinstance(cutoff, str):
-        try:
-            cutoff = date.fromisoformat(cutoff)
-        except ValueError:
-            return False
-    return timezone.localdate() > cutoff
+    return timezone.localdate() > SERVICE_CUTOFF_DATE
 
 
 def _service_expired_response():
@@ -351,8 +341,6 @@ class WorkflowRunViewSet(ExpiringWorkflowMixin, viewsets.ModelViewSet):
         workflow_run.started_at = workflow_run.started_at or timezone.now()
         workflow_run.error_message = ''
         workflow_run.save(update_fields=['status', 'started_at', 'error_message', 'updated_at'])
-        from .services import launch_ready_node_runs
-        launch_ready_node_runs(str(workflow_run.id))
         return Response({'message': '工作流已启动', 'workflow_run_id': str(workflow_run.id)})
 
     @action(detail=True, methods=['post'])
@@ -382,8 +370,6 @@ class WorkflowRunViewSet(ExpiringWorkflowMixin, viewsets.ModelViewSet):
             completed_at=None,
             started_at=None,
         )
-        from .services import launch_ready_node_runs
-        launch_ready_node_runs(str(workflow_run.id))
         return Response({'message': '工作流已重置为待运行', 'workflow_run_id': str(workflow_run.id)})
 
     @action(detail=True, methods=['get'], renderer_classes=[ServerSentEventRenderer])
@@ -458,41 +444,6 @@ class WorkflowNodeRunViewSet(ExpiringWorkflowMixin, viewsets.ModelViewSet):
         })
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'])
-    def retry(self, request, pk=None):
-        """仅重跑失败节点，保留原运行作为审计快照。"""
-        node_run = self.get_object()
-        if node_run.status != 'failed':
-            return Response({'error': '只有失败节点才能重试'}, status=status.HTTP_400_BAD_REQUEST)
-        next_sequence = (WorkflowNodeRun.objects.filter(node=node_run.node).aggregate(max_seq=Max('sequence')).get('max_seq') or 0) + 1
-        retry_run = WorkflowNodeRun.objects.create(
-            workflow_run=node_run.workflow_run, canvas=node_run.canvas, node=node_run.node,
-            node_key=node_run.node_key, node_type=node_run.node_type, status='pending', sequence=next_sequence,
-            trigger_source='retry', input_payload=node_run.input_payload, upstream_snapshot=node_run.upstream_snapshot,
-            input_fingerprint=node_run.input_fingerprint, model_snapshot=node_run.model_snapshot,
-            timeout_seconds=node_run.timeout_seconds, max_retries=node_run.max_retries,
-            retry_count=node_run.retry_count + 1,
-        )
-        from .services import enqueue_node_run
-        enqueue_node_run(retry_run)
-        return Response(WorkflowNodeRunSerializer(retry_run).data, status=status.HTTP_202_ACCEPTED)
-
-    @action(detail=True, methods=['post'])
-    def cancel(self, request, pk=None):
-        node_run = self.get_object()
-        if node_run.status in {'completed', 'failed', 'cancelled'}:
-            return Response({'error': '节点已结束'}, status=status.HTTP_400_BAD_REQUEST)
-        if node_run.external_task_id:
-            AsyncResult(node_run.external_task_id).revoke(terminate=True)
-        node_run.status = 'cancelled'
-        node_run.completed_at = timezone.now()
-        node_run.save(update_fields=['status', 'completed_at', 'updated_at'])
-        from .services import create_node_run_event, sync_workflow_run_status
-        create_node_run_event(node_run, 'run_cancelled', {})
-        if node_run.workflow_run_id:
-            sync_workflow_run_status(str(node_run.workflow_run_id))
-        return Response(WorkflowNodeRunSerializer(node_run).data)
-
     @action(detail=True, methods=['get'], renderer_classes=[ServerSentEventRenderer])
     def stream(self, request, pk=None):
         node_run = self.get_object()
@@ -558,50 +509,6 @@ class WorkflowNodeRunViewSet(ExpiringWorkflowMixin, viewsets.ModelViewSet):
         response['Cache-Control'] = 'no-cache, no-transform'
         response['X-Accel-Buffering'] = 'no'
         return response
-
-
-class WorkflowResultCandidateViewSet(ExpiringWorkflowMixin, viewsets.ReadOnlyModelViewSet):
-    """Browse, review, and restore immutable generated candidates."""
-
-    permission_classes = [IsAuthenticated]
-    serializer_class = WorkflowResultCandidateSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = ['node_run', 'node', 'status', 'media_type', 'parent_candidate']
-    ordering_fields = ['created_at', 'result_index', 'adopted_at']
-    ordering = ['-created_at', 'result_index']
-
-    def get_queryset(self):
-        queryset = (
-            WorkflowResultCandidate.objects
-            .filter(
-                Q(node_run__canvas__project__user=self.request.user, node_run__canvas__created_by=self.request.user) |
-                Q(node_run__workflow_run__project__user=self.request.user, node_run__workflow_run__created_by=self.request.user)
-            )
-            .select_related('node_run', 'node', 'parent_candidate')
-            .distinct()
-        )
-        canvas_id = self.request.query_params.get('canvas')
-        if canvas_id:
-            queryset = queryset.filter(node_run__canvas_id=canvas_id)
-        return queryset
-
-    @action(detail=True, methods=['post'])
-    def review(self, request, pk=None):
-        candidate = self.get_object()
-        serializer = WorkflowResultCandidateStatusSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        candidate = set_candidate_status(candidate, serializer.validated_data['status'])
-        return Response(self.get_serializer(candidate).data)
-
-    @action(detail=True, methods=['post'])
-    def restore(self, request, pk=None):
-        restored = restore_candidate(self.get_object())
-        return Response(self.get_serializer(restored).data, status=status.HTTP_201_CREATED)
-
-    @action(detail=True, methods=['post'])
-    def reproduce(self, request, pk=None):
-        node_run = reproduce_candidate(self.get_object())
-        return Response(WorkflowNodeRunSerializer(node_run).data, status=status.HTTP_202_ACCEPTED)
 
 
 class WorkflowBindingViewSet(ExpiringWorkflowMixin, viewsets.ReadOnlyModelViewSet):

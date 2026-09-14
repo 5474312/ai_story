@@ -20,9 +20,7 @@ DEFAULT_VIDEO_PROMPTS = {
 def _resolve_video_prompt(input_payload: Dict[str, Any]) -> str:
     prompt = str(input_payload.get('prompt') or '').strip()
     text = str(input_payload.get('text') or '').strip()
-    if text and prompt in DEFAULT_VIDEO_PROMPTS:
-        return text
-    return '\n'.join(part for part in (text, prompt) if part)
+    return f"{text}\n{prompt}"
 
 
 def execute_video_generation(input_payload: Dict[str, Any], user_id=None) -> Dict[str, Any]:
@@ -54,7 +52,6 @@ def execute_video_generation(input_payload: Dict[str, Any], user_id=None) -> Dic
     raw_result = client._generate_video(
         prompt=prompt,
         model=provider.model_name,
-        model_version=input_payload.get('model_version') or provider.model_name,
         image_uri=api_image_inputs[0] if api_image_inputs else '',
         image_uris=api_image_inputs,
         image_base64=image_base64,

@@ -21,7 +21,7 @@ from apps.workflows.models import (
 )
 
 
-ACTIVE_NODE_RUN_STATUSES = {'queued', 'running', 'waiting_callback', 'waiting_confirmation'}
+ACTIVE_NODE_RUN_STATUSES = {'queued', 'running', 'waiting_callback'}
 TERMINAL_NODE_RUN_STATUSES = {'completed', 'failed', 'cancelled', 'blocked'}
 
 
@@ -231,15 +231,7 @@ def enqueue_node_run(node_run: WorkflowNodeRun):
     """将节点运行入队。"""
     from . import views as workflow_views
 
-    # Celery priority is best-effort (the broker may ignore it), but keeps
-    # high-priority runs ahead of normal work when priority queues are enabled.
-    priority = max(0, min(9, int(getattr(node_run.workflow_run, 'priority', 0) or 0)))
-    enqueue = getattr(workflow_views.execute_workflow_node_task, 'apply_async', None)
-    task = (
-        enqueue(args=[str(node_run.id)], priority=priority)
-        if priority and enqueue
-        else workflow_views.execute_workflow_node_task.delay(str(node_run.id))
-    )
+    task = workflow_views.execute_workflow_node_task.delay(str(node_run.id))
     task_id = str(getattr(task, 'id', '') or '')
     node_run.refresh_from_db()
     if task_id and node_run.status in {'pending', 'queued'}:
@@ -263,14 +255,6 @@ def enqueue_node_run(node_run: WorkflowNodeRun):
 def launch_ready_node_runs(workflow_run_id: str) -> List[WorkflowNodeRun]:
     """启动当前批次中已经满足执行条件的节点。"""
     ready_runs = resolve_ready_node_runs(workflow_run_id)
-    workflow_run = WorkflowRun.objects.filter(id=workflow_run_id).only('max_concurrency').first()
-    if workflow_run:
-        active_count = WorkflowNodeRun.objects.filter(
-            workflow_run_id=workflow_run_id,
-            status__in=ACTIVE_NODE_RUN_STATUSES,
-        ).count()
-        capacity = max(0, int(workflow_run.max_concurrency or 1) - active_count)
-        ready_runs = ready_runs[:capacity]
     launched_runs: List[WorkflowNodeRun] = []
     for run in ready_runs:
         enqueue_node_run(run)
@@ -292,7 +276,7 @@ def sync_workflow_run_status(workflow_run_id: str) -> None:
     now = timezone.now()
     statuses = {run.status for run in runs}
     update_fields = ['updated_at']
-    if any(status in ACTIVE_NODE_RUN_STATUSES for status in statuses):
+    if any(status in {'running', 'waiting_callback', 'queued'} for status in statuses):
         workflow_run.status = 'running'
         workflow_run.started_at = workflow_run.started_at or now
         update_fields.extend(['status', 'started_at'])
